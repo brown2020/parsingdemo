@@ -1,0 +1,12 @@
+[
+  {
+    "origin": [
+      "*",
+      "http://localhost:3000",
+      "https://your-production-domain.com"
+    ],
+    "method": ["GET", "HEAD", "POST"],
+    "responseHeader": ["Content-Type"],
+    "maxAgeSeconds": 3600
+  }
+]
