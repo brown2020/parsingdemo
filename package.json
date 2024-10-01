@@ -12,7 +12,6 @@
     "@ai-sdk/google": "^0.0.51",
     "@ai-sdk/openai": "^0.0.63",
     "@clerk/nextjs": "^5.3.3",
-    "@google-cloud/vertexai": "^1.5.0",
     "@google/generative-ai": "^0.20.0",
     "@kenjiuno/msgreader": "^1.22.0",
     "@stripe/react-stripe-js": "^2.8.0",
@@ -45,7 +44,7 @@
     "react-spinners": "^0.14.1",
     "react-textarea-autosize": "^8.5.3",
     "sanitize-html": "^2.13.0",
-    "stripe": "^16.12.0",
+    "stripe": "^17.0.0",
     "zustand": "^4.5.5"
   },
   "devDependencies": {
