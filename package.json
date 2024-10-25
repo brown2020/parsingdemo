@@ -28,7 +28,7 @@
     "mailparser": "^3.7.1",
     "mailsplit": "^5.4.0",
     "mammoth": "^1.8.0",
-    "next": "^14.2.13",
+    "next": "^14.2.16",
     "node-fetch": "^3.3.2",
     "node-outlook": "^1.1.8",
     "pdf-lib": "^1.17.1",
