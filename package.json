@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@ai-sdk/google": "^0.0.54",
+    "@ai-sdk/google": "^0.0.55",
     "@ai-sdk/openai": "^0.0.70",
     "@clerk/nextjs": "^6.0.2",
     "@google/generative-ai": "^0.21.0",
@@ -24,11 +24,11 @@
     "html-to-text": "^9.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^2.5.1",
-    "lucide-react": "^0.453.0",
+    "lucide-react": "^0.454.0",
     "mailparser": "^3.7.1",
     "mailsplit": "^5.4.0",
     "mammoth": "^1.8.0",
-    "next": "^14.2.16",
+    "next": "^15.0.2",
     "node-fetch": "^3.3.2",
     "node-outlook": "^1.1.8",
     "pdf-lib": "^1.17.1",
@@ -45,7 +45,7 @@
     "react-textarea-autosize": "^8.5.3",
     "sanitize-html": "^2.13.0",
     "stripe": "^17.0.0",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.0"
   },
   "devDependencies": {
     "@types/html-to-text": "^9.0.4",
@@ -55,8 +55,8 @@
     "@types/react": "^18.3.4",
     "@types/react-dom": "^18",
     "@types/sanitize-html": "^2.13.0",
-    "eslint": "^8",
-    "eslint-config-next": "^14.2.6",
+    "eslint": "^9.13.0",
+    "eslint-config-next": "^15.0.2",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.13",
     "typescript": "^5.6.2"
