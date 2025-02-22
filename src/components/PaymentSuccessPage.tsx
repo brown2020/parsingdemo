@@ -73,7 +73,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
   }, [payment_intent, addPayment, addCredits, uid]);
 
   return (
-    <main className="max-w-6xl w-full mx-auto p-10 text-white text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500">
+    <main className="max-w-6xl w-full mx-auto p-10 text-white text-center border m-10 rounded-md bg-linear-to-tr from-blue-500 to-purple-500">
       {loading ? (
         <div>validating...</div>
       ) : id ? (

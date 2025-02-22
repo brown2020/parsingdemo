@@ -97,7 +97,7 @@ const SelectedFiles: React.FC<SelectedFilesProps> = ({ selectedFiles }) => {
       <div className="mt-4">
         <button
           onClick={handleAnalyzeDocuments}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center justify-center"
+          className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 flex items-center justify-center"
           disabled={loading}
         >
           {loading ? (

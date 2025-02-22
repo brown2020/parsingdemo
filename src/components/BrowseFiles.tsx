@@ -197,7 +197,7 @@ const BrowseFiles: React.FC = () => {
     <DndProvider backend={HTML5Backend}>
       <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg w-full">
         <div className="text-3xl font-bold mb-6 text-center">Browse Files</div>
-        <div className="bg-gray-100 p-4 rounded-md mb-6 shadow-sm">
+        <div className="bg-gray-100 p-4 rounded-md mb-6 shadow-xs">
           <div className="text-lg font-semibold">
             <strong>User:</strong> {user.fullName}
           </div>
@@ -221,7 +221,7 @@ const BrowseFiles: React.FC = () => {
           <select
             value={group}
             onChange={(e) => setGroup(e.target.value)}
-            className="p-2 border rounded-md shadow-sm focus:ring focus:ring-blue-500"
+            className="p-2 border rounded-md shadow-xs focus:ring-3 focus:ring-blue-500"
           >
             <option value="groupTwo">Group Two</option>
             <option value="groupOne">Group One</option>
