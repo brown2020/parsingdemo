@@ -81,10 +81,10 @@ export async function POST(req: NextRequest) {
     page.setDefaultTimeout(300000); // 5 minutes timeout
 
     // Monitor page events
-    page.on("error", (error: Error) => {
+    page.on("error", (error: any) => {
       console.error("Page error:", error);
     });
-    page.on("pageerror", (error: Error) => {
+    page.on("pageerror", (error: any) => {
       console.error("Page error:", error);
     });
     page.on("close", () => {

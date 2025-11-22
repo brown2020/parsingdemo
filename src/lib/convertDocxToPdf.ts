@@ -106,7 +106,7 @@ export const convertDocxToPdf = async ({
     const pdfBytes = await pdfDoc.save();
 
     // Return the Blob
-    return new Blob([pdfBytes], { type: "application/pdf" });
+    return new Blob([pdfBytes as any], { type: "application/pdf" });
   } catch (error: unknown) {
     console.error(`Error occurred: ${error}`);
     if (browser) {

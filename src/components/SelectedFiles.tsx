@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { FileUrl } from "@/types/FileUrl";
 import { analyzeDocuments } from "@/lib/generateActions";
-import { readStreamableValue } from "ai/rsc";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import ClipLoader from "react-spinners/ClipLoader";
 
 type SelectedFilesProps = {

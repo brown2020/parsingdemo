@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -15,7 +15,8 @@ async function extractTextFromPdf(pdfUrl: string) {
   try {
     const response = await axios.get(pdfUrl, { responseType: "arraybuffer" });
     const dataBuffer = response.data;
-    const data = await pdf(dataBuffer);
+    const parser = new PDFParse({ data: dataBuffer });
+    const data = await parser.getText();
     return data.text;
   } catch (error) {
     console.error("Error downloading or parsing PDF:", error);

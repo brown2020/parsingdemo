@@ -1,10 +1,10 @@
 "use server";
 
-import { createStreamableValue } from "ai/rsc";
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { CoreMessage, streamText } from "ai";
 import { google } from "@ai-sdk/google";
 import axios from "axios";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 // Set a 5-minute timeout for Axios requests
 const axiosInstance = axios.create({
@@ -27,7 +27,8 @@ async function extractTextFromPdf(pdfUrl: string) {
       responseType: "arraybuffer",
     });
     const dataBuffer = response.data;
-    const data = await pdf(dataBuffer);
+    const parser = new PDFParse({ data: dataBuffer });
+    const data = await parser.getText();
     return data.text;
   } catch (error) {
     console.error("Error downloading or parsing PDF:", error);

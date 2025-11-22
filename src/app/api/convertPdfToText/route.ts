@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
@@ -19,7 +19,8 @@ export async function POST(req: Request) {
 
     // Parse the PDF file
     console.time("Parse PDF");
-    const data = await pdf(buffer);
+    const parser = new PDFParse({ data: buffer });
+    const data = await parser.getText();
     console.timeEnd("Parse PDF");
     console.log("PDF parsing complete");
 
