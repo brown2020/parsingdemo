@@ -22,7 +22,6 @@ ParsingDemo is a robust document parsing solution that handles multiple file for
   - [Convert MSG to Text](#convert-msg-to-text)
   - [Convert Image to PDF](#convert-image-to-pdf)
   - [Convert PDF to Text](#convert-pdf-to-text)
-  - [Process PDFs with Gemini AI](#process-pdfs-with-gemini-ai)
 - [DnD Functionality](#dnd-functionality)
 - [AI Analysis Functionality](#ai-analysis-functionality)
 - [Contributing](#contributing)
@@ -70,7 +69,8 @@ The main objective of ParsingDemo is to handle various document formats by first
 
 ## Tech Stack
 
-- **Next.js 14**: Frontend framework for server-side rendering and static site generation.
+- **Next.js 16**: App Router, Route Handlers, Server Actions.
+- **Tailwind CSS v4**: Utility-first styling (plus a small set of reusable global “UI primitives” in `src/app/globals.css`).
 - **Firebase**: Provides authentication, Firestore, and cloud storage.
 - **Clerk**: Manages user authentication and login.
 - **Stripe**: Handles payment processing.
@@ -82,6 +82,8 @@ The main objective of ParsingDemo is to handle various document formats by first
 - **React DnD**: Implements drag-and-drop functionality.
 - **React Spinners**: Displays loading states.
 - **Zustand**: Manages application state.
+- **ESLint (flat config)**: Linting via `eslint.config.mjs`.
+- **Vercel AI SDK**: Streaming AI analysis from server actions (`src/lib/generateActions.ts`).
 
 ---
 
@@ -139,6 +141,7 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 # Stripe
 NEXT_PUBLIC_STRIPE_KEY=your_stripe_key
 STRIPE_SECRET_KEY=your_stripe_secret_key
+NEXT_PUBLIC_STRIPE_PRODUCT_NAME=credits
 
 # AI APIs
 OPENAI_API_KEY=your_openai_api_key
@@ -165,6 +168,20 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## API Routes
 
+All conversion routes are **POST** endpoints and accept **`multipart/form-data`**:
+
+- **Field**: `file` (required)
+- **Optional fields**:
+  - `userId` (string) - used only for PDF metadata authoring
+  - `filenameBase` (string) - used to name the output file
+
+Example:
+
+```bash
+curl -X POST "http://localhost:3000/api/convertPdfToText" \
+  -F "file=@./example.pdf"
+```
+
 ### Convert DOCX to PDF
 
 - **Route**: `/api/convertDocxToPdf`
@@ -179,13 +196,13 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Convert EML to PDF
 
-- **Route**: `/api/convertEmToPdf`
+- **Route**: `/api/convertEmlToPdf`
 - **Description**: Converts EML (email) files into PDFs using **Mailparser** and **Puppeteer**.
 - **Use Case**: Converts email files into a printable and shareable PDF format.
 
 ### Convert EML to Text
 
-- **Route**: `/api/convertEmToText`
+- **Route**: `/api/convertEmlToText`
 - **Description**: Converts EML files to plain text using **Mailparser**.
 - **Use Case**: Extracts email content and metadata in text format.
 
@@ -213,12 +230,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - **Description**: Extracts text from existing PDF files using **pdf-parse**.
 - **Use Case**: Parses PDF files and extracts readable text content.
 
-### Process PDFs with Gemini AI
-
-- **Route**: `/api/process-pdfs`
-- **Description**: Sends PDF content to the Google **Gemini API** for analysis and content generation based on a prompt.
-- **Use Case**: Leverages AI for generating insights or summarization based on the PDF content.
-
 ---
 
 ## DnD Functionality
@@ -232,12 +243,19 @@ The **drag-and-drop (DnD)** functionality allows users to easily upload and move
 
 ## AI Analysis Functionality
 
-The **AI analysis functionality** is a powerful feature where the parsed text from documents is sent to a large language model (LLM) for further processing. This can include summarization, content generation, or analysis of the extracted text.
+The **AI analysis functionality** streams results from a server action (`src/lib/generateActions.ts`) using the Vercel AI SDK. Selected PDFs are converted to text, combined, and then sent to the configured model for analysis.
 
 - **Supported Models**: Includes integration with AI models like OpenAI, Google Gemini, and Anthropic.
-- **Use Case**: After parsing document content, send it
+- **Use Case**: After parsing document content, send it to an AI model for further insights or enhancements.
 
-to an AI model for further insights or enhancements.
+---
+
+## Route Protection (Next.js 16)
+
+This project uses **`src/proxy.ts`** (Next.js 16) to protect routes with Clerk.
+
+- Public routes: `/`, `/sign-in(.*)`, `/sign-up(.*)`
+- All other routes are protected via `auth.protect()`
 
 ---
 
