@@ -3,13 +3,10 @@
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { CoreMessage, streamText } from "ai";
 import { google } from "@ai-sdk/google";
-import axios from "axios";
 import { PDFParse } from "pdf-parse";
 
-// Set a 5-minute timeout for Axios requests
-const axiosInstance = axios.create({
-  timeout: 300000, // 300,000 ms (5 minutes)
-});
+const FETCH_TIMEOUT_MS = 300_000; // 5 minutes
+const MAX_COMBINED_DOCUMENT_CHARS = 200_000;
 
 export async function continueConversation(messages: CoreMessage[]) {
   const result = streamText({
@@ -21,17 +18,28 @@ export async function continueConversation(messages: CoreMessage[]) {
   return stream.value;
 }
 
+async function fetchArrayBufferWithTimeout(url: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) {
+      throw new Error(`Failed to fetch PDF (${res.status})`);
+    }
+    return await res.arrayBuffer();
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 async function extractTextFromPdf(pdfUrl: string) {
   try {
-    const response = await axiosInstance.get(pdfUrl, {
-      responseType: "arraybuffer",
-    });
-    const dataBuffer = response.data;
+    const dataBuffer = await fetchArrayBufferWithTimeout(pdfUrl);
     const parser = new PDFParse({ data: dataBuffer });
     const data = await parser.getText();
     return data.text;
   } catch (error) {
-    console.error("Error downloading or parsing PDF:", error);
+    console.error("Error downloading or parsing PDF:", pdfUrl, error);
     throw error;
   }
 }
@@ -44,7 +52,11 @@ async function generateDocumentText(docs: string[]) {
     try {
       const pdfText = await extractTextFromPdf(pdfUrl);
       extractedText += `\n\n--- Document ${i + 1} ---\n${pdfText}`;
-      console.log(`Extracted text from PDF ${i + 1}:`, pdfText);
+      if (extractedText.length > MAX_COMBINED_DOCUMENT_CHARS) {
+        extractedText = extractedText.slice(0, MAX_COMBINED_DOCUMENT_CHARS);
+        extractedText += "\n\n--- Truncated ---\n";
+        break;
+      }
     } catch (error) {
       console.error(`Error extracting text from PDF at ${pdfUrl}:`, error);
     }
@@ -55,7 +67,6 @@ async function generateDocumentText(docs: string[]) {
 export async function analyzeDocuments(docs: string[], prompt: string) {
   const extractedText = await generateDocumentText(docs);
   const finalPrompt = `prompt: ${prompt}\ndocument: ${extractedText}\n\nReturn plain text only. Do not use markdown or any other formatting.`;
-  console.log("Final prompt:", finalPrompt);
 
   const messages: CoreMessage[] = [{ content: finalPrompt, role: "user" }];
 

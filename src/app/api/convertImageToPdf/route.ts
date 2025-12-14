@@ -1,13 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import puppeteer from "puppeteer";
 import { PDFDocument } from "pdf-lib";
+import {
+  asPdfAttachment,
+  getFormFile,
+  getOptionalFormString,
+  jsonError,
+} from "../_shared";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { fileBuffer, fileType, filename, userId } = await req.json();
+    const formData = await req.formData();
+    const file = getFormFile(formData);
+    const userId = getOptionalFormString(formData, "userId") || "";
+    const filenameBase =
+      getOptionalFormString(formData, "filenameBase") ||
+      file.name.replace(/\.[^/.]+$/, "");
 
     const browser = await puppeteer.launch({
       headless: true,
@@ -15,8 +26,9 @@ export async function POST(req: NextRequest) {
     });
     const page = await browser.newPage();
 
-    const base64Image = `data:${fileType};base64,${Buffer.from(
-      fileBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    const base64Image = `data:${file.type};base64,${Buffer.from(
+      arrayBuffer
     ).toString("base64")}`;
     const content = `
       <style>
@@ -50,26 +62,16 @@ export async function POST(req: NextRequest) {
 
     // Load the PDF document with pdf-lib
     const pdfDoc = await PDFDocument.load(pdfBuffer);
-    pdfDoc.setTitle(filename);
-    pdfDoc.setAuthor(userId);
+    pdfDoc.setTitle(filenameBase);
+    if (userId) pdfDoc.setAuthor(userId);
 
     // Serialize the PDFDocument to bytes (a Uint8Array)
     const pdfBytes = await pdfDoc.save();
 
-    return new NextResponse(Buffer.from(pdfBytes), {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}.pdf"`,
-      },
-    });
+    return asPdfAttachment(pdfBytes, filenameBase);
   } catch (error: unknown) {
-    const typedError = error as Error;
-    console.error(typedError);
-    return new NextResponse(
-      JSON.stringify({ error: typedError?.message || "unknown error" }),
-      {
-        status: 500,
-      }
-    );
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(message);
+    return jsonError(message, 500);
   }
 }

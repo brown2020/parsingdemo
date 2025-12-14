@@ -12,22 +12,26 @@ type Props = {
 };
 
 export default function PaymentSuccessPage({ payment_intent }: Props) {
+  const CREDITS_PER_PURCHASE = 10_000;
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [created, setCreated] = useState(0);
   const [id, setId] = useState("");
   const [amount, setAmount] = useState(0);
   const [status, setStatus] = useState("");
+  const [createdAtMs, setCreatedAtMs] = useState<number | null>(null);
 
   const addPayment = usePaymentsStore((state) => state.addPayment);
+  const checkIfPaymentProcessed = usePaymentsStore(
+    (state) => state.checkIfPaymentProcessed
+  );
   const addCredits = useProfileStore((state) => state.addCredits);
 
   const uid = useAuthStore((state) => state.uid);
 
   useEffect(() => {
     if (!payment_intent) {
-      console.log("in useEffect no payment intent", payment_intent);
       setMessage("No payment intent found");
       setLoading(false);
       return;
@@ -35,28 +39,36 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
 
     const handlePaymentSuccess = async () => {
       try {
+        const existing = await checkIfPaymentProcessed(payment_intent);
+        if (existing?.status === "succeeded") {
+          setMessage("Payment already processed");
+          setId(existing.id);
+          setAmount(existing.amount);
+          setStatus(existing.status);
+          setCreatedAtMs(existing.createdAt?.toMillis?.() ?? null);
+          return;
+        }
+
         const data = await validatePaymentIntent(payment_intent);
-        console.log("Payment validation result:", data);
 
         if (data.status === "succeeded") {
           setMessage("Payment successful");
-          setCreated(data.created);
           setId(data.id);
           setAmount(data.amount);
           setStatus(data.status);
-          console.log("Payment successful:", data.amount);
+          setCreatedAtMs((data.created ?? 0) * 1000);
 
           // Add payment to store
-          await addPayment({
+          const recorded = await addPayment({
             id: data.id,
             amount: data.amount,
             status: data.status,
           });
 
           // Add credits to profile
-          const creditsToAdd = data.amount + 1;
-          await addCredits(creditsToAdd);
-          console.log("Credits added to profile successfully");
+          if (recorded) {
+            await addCredits(CREDITS_PER_PURCHASE);
+          }
         } else {
           console.error("Payment validation failed:", data.status);
           setMessage("Payment validation failed");
@@ -70,7 +82,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
     };
 
     if (uid) handlePaymentSuccess();
-  }, [payment_intent, addPayment, addCredits, uid]);
+  }, [payment_intent, addPayment, addCredits, checkIfPaymentProcessed, uid]);
 
   return (
     <main className="max-w-6xl w-full mx-auto p-10 text-white text-center border m-10 rounded-md bg-linear-to-tr from-blue-500 to-purple-500">
@@ -85,7 +97,10 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
           </div>
           <div>Uid: {uid}</div>
           <div>Id: {id}</div>
-          <div>Created: {new Date(created * 1000).toLocaleString()}</div>
+          <div>
+            Created:{" "}
+            {createdAtMs ? new Date(createdAtMs).toLocaleString() : "N/A"}
+          </div>
           <div>Status: {status}</div>
         </div>
       ) : (

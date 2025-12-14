@@ -83,7 +83,6 @@ const useProfileStore = create<ProfileState>((set, get) => ({
           authPhotoUrl,
           authEmailVerified,
         });
-        console.log("Profile found:", newProfile);
       } else {
         newProfile = {
           email: authEmail || "",
@@ -98,7 +97,6 @@ const useProfileStore = create<ProfileState>((set, get) => ({
           mistral_api_key: "", // New API key default
           fireworks_api_key: "", // New API key default
         };
-        console.log("No profile found. Creating new profile document.");
       }
 
       await setDoc(userRef, newProfile);
@@ -112,15 +110,12 @@ const useProfileStore = create<ProfileState>((set, get) => ({
     const uid = useAuthStore.getState().uid;
     if (!uid) return;
 
-    console.log("Updating profile:", newProfile);
-
     try {
       const userRef = doc(db, `users/${uid}/profile/userData`);
       const updatedProfile = { ...get().profile, ...newProfile };
 
       set({ profile: updatedProfile });
       await updateDoc(userRef, updatedProfile);
-      console.log("Profile updated successfully");
     } catch (error) {
       console.error("Error updating profile:", error);
     }

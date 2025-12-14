@@ -1,27 +1,23 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { simpleParser, AddressObject } from "mailparser";
+import {
+  asTextAttachment,
+  fileToBuffer,
+  getFormFile,
+  jsonError,
+} from "../_shared";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { fileBuffer } = await req.json();
-
-    // Convert ArrayBuffer to Buffer
-    const buffer = Buffer.from(fileBuffer);
-    const bufferSize = buffer.length / (1024 * 1024); // Size in MB
-    console.log(`Processing file of size: ${bufferSize.toFixed(2)} MB`);
-
-    if (bufferSize > 40) {
-      throw new Error("File size exceeds 40MB limit");
-    }
+    const formData = await req.formData();
+    const file = getFormFile(formData);
+    const buffer = await fileToBuffer(file);
 
     // Parse the EML file using mailparser
-    console.time("Parse EML");
     const parsedEmail = await simpleParser(buffer);
-    console.timeEnd("Parse EML");
-    console.log("EML parsing complete");
 
     // Helper function to extract email addresses as a string
     const extractEmails = (
@@ -49,20 +45,11 @@ export async function POST(req: NextRequest) {
       ${parsedEmail.text || "No Text Content"}
     `;
 
-    console.log("Extracted text content:", textContent);
-
     // Return plain text response
-    return new NextResponse(textContent, {
-      headers: {
-        "Content-Type": "text/plain",
-      },
-    });
+    return asTextAttachment(textContent.trim() + "\n", "converted.txt");
   } catch (error: unknown) {
-    const typedError = error as Error;
-    console.error(`Error occurred: ${typedError.message}`);
-    return new NextResponse(
-      JSON.stringify({ error: typedError?.message || "unknown error" }),
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(message);
+    return jsonError(message, 500);
   }
 }

@@ -15,20 +15,27 @@ export const convertHeicToJpeg = async (file: File): Promise<File> => {
   });
 };
 
+function buildFormData(
+  file: File,
+  options?: { userId?: string; filenameBase?: string }
+) {
+  const formData = new FormData();
+  formData.append("file", file, file.name);
+  if (options?.userId) formData.append("userId", options.userId);
+  if (options?.filenameBase)
+    formData.append("filenameBase", options.filenameBase);
+  return formData;
+}
+
 export const convertDocxToPdf = async (
   file: File,
   userId: string
 ): Promise<Blob> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertDocxToPdf", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(/\.[^/.]+$/, ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.[^/.]+$/, ""),
     }),
   });
 
@@ -43,17 +50,11 @@ export const convertImageToPdf = async (
   file: File,
   userId: string
 ): Promise<Blob> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertImageToPdf", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      fileType: file.type,
-      filename: file.name.replace(/\.[^/.]+$/, ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.[^/.]+$/, ""),
     }),
   });
 
@@ -64,41 +65,15 @@ export const convertImageToPdf = async (
   }
 };
 
-export const convertPdfUrlToText = async (url: string): Promise<string> => {
-  console.log("Starting PDF URL to text conversion for URL:", url);
-  const response = await fetch("/api/convertPdfToText", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ url }),
-  });
-
-  if (response.ok) {
-    const result = await response.json();
-    console.log("Successfully fetched PDF text:", result.text);
-    return result.text;
-  } else {
-    const error = await response.json();
-    console.error("Error fetching PDF text:", error);
-    throw new Error(error.error || "Failed to convert PDF to text");
-  }
-};
-
 export const convertEmlToPdf = async (
   file: File,
   userId: string
 ): Promise<Blob> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertEmlToPdf", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(".eml", ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.eml$/i, ""),
     }),
   });
 
@@ -113,16 +88,11 @@ export const convertEmlToText = async (
   file: File,
   userId: string
 ): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertEmlToText", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(".eml", ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.eml$/i, ""),
     }),
   });
 
@@ -137,16 +107,11 @@ export const convertMsgToPdf = async (
   file: File,
   userId: string
 ): Promise<Blob> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertMsgToPdf", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(".msg", ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.msg$/i, ""),
     }),
   });
 
@@ -161,16 +126,11 @@ export const convertMsgToText = async (
   file: File,
   userId: string
 ): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertMsgToText", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(".msg", ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.msg$/i, ""),
     }),
   });
 
@@ -185,16 +145,11 @@ export const convertDocxToText = async (
   file: File,
   userId: string
 ): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertDocxToText", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-      filename: file.name.replace(".docx", ""),
-      userId: userId,
+    body: buildFormData(file, {
+      userId,
+      filenameBase: file.name.replace(/\.docx$/i, ""),
     }),
   });
 
@@ -206,15 +161,9 @@ export const convertDocxToText = async (
 };
 
 export const convertPdfToText = async (file: File): Promise<string> => {
-  const arrayBuffer = await file.arrayBuffer();
   const response = await fetch("/api/convertPdfToText", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      fileBuffer: Array.from(new Uint8Array(arrayBuffer)),
-    }),
+    body: buildFormData(file),
   });
 
   if (response.ok) {

@@ -16,7 +16,6 @@ import {
   signOut as firebaseSignOut,
   updateProfile,
 } from "firebase/auth";
-import { serverTimestamp, Timestamp } from "firebase/firestore";
 import Link from "next/link";
 import { useEffect } from "react";
 
@@ -32,11 +31,10 @@ export default function Header() {
       if (isSignedIn && user) {
         try {
           const token = await getToken({ template: "integration_firebase" });
-          const userCredentials = await signInWithCustomToken(
-            auth,
-            token || ""
-          );
-          console.log("User signed in to Firebase:", userCredentials.user);
+          if (!token)
+            throw new Error("Missing Clerk Firebase integration token");
+
+          const userCredentials = await signInWithCustomToken(auth, token);
 
           // Update Firebase user profile
           await updateProfile(userCredentials.user, {
@@ -50,14 +48,14 @@ export default function Header() {
             authDisplayName: user.fullName || "",
             authPhotoUrl: user.imageUrl,
             authReady: true,
-            lastSignIn: serverTimestamp() as Timestamp,
+            authEmailVerified:
+              user.emailAddresses?.[0]?.verification?.status === "verified",
           });
         } catch (error) {
           console.error("Error signing in with custom token:", error);
           clearAuthDetails();
         }
       } else {
-        console.log("User is not signed in with Clerk");
         await firebaseSignOut(auth);
         clearAuthDetails();
       }

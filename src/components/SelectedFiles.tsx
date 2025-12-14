@@ -20,9 +20,6 @@ const SelectedFiles: React.FC<SelectedFilesProps> = ({ selectedFiles }) => {
       .map((file) => file.urlPdf)
       .filter((url): url is string => url !== null);
 
-    console.log("PDF URLs:", pdfUrls);
-    console.log("Prompt:", prompt);
-
     if (pdfUrls.length === 0 || !prompt) {
       setApiResponse(
         "Error: Please select at least one PDF and provide a prompt."

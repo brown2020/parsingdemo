@@ -97,7 +97,6 @@ export default function ProfileComponent() {
     if (hasChanges) {
       try {
         await updateProfile(apiKeys);
-        console.log("API keys updated successfully!");
       } catch (error) {
         console.error("Error updating API keys:", error);
       }

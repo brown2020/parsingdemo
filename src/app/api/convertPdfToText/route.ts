@@ -1,42 +1,29 @@
-import { NextResponse } from "next/server";
 import { PDFParse } from "pdf-parse";
+import {
+  asTextAttachment,
+  fileToBuffer,
+  getFormFile,
+  jsonError,
+} from "../_shared";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   try {
-    const { fileBuffer } = await req.json();
-
-    // Convert ArrayBuffer to Buffer
-    const buffer = Buffer.from(fileBuffer);
-    const bufferSize = buffer.length / (1024 * 1024); // Size in MB
-    console.log(`Processing file of size: ${bufferSize.toFixed(2)} MB`);
-
-    if (bufferSize > 40) {
-      throw new Error("File size exceeds 50MB limit");
-    }
+    const formData = await req.formData();
+    const file = getFormFile(formData);
+    const buffer = await fileToBuffer(file);
 
     // Parse the PDF file
-    console.time("Parse PDF");
     const parser = new PDFParse({ data: buffer });
     const data = await parser.getText();
-    console.timeEnd("Parse PDF");
-    console.log("PDF parsing complete");
 
     // Return plain text response
-    return new NextResponse(data.text, {
-      headers: {
-        "Content-Type": "text/plain",
-        "Content-Disposition": `attachment; filename="converted.txt"`,
-      },
-    });
+    return asTextAttachment(data.text);
   } catch (error: unknown) {
-    const typedError = error as Error;
-    console.error(`Error occurred: ${typedError.message}`);
-    return new NextResponse(
-      JSON.stringify({ error: typedError?.message || "unknown error" }),
-      { status: 500 }
-    );
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(message);
+    return jsonError(message, 500);
   }
 }

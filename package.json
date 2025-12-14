@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "eslint ."
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.40",
@@ -14,12 +14,10 @@
     "@ai-sdk/react": "^2.0.99",
     "@ai-sdk/rsc": "^1.0.100",
     "@clerk/nextjs": "^6.0.2",
-    "@google/generative-ai": "^0.24.0",
     "@kenjiuno/msgreader": "^1.27.0-alpha.3",
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",
     "ai": "^5.0.99",
-    "axios": "^1.7.5",
     "firebase": "^12.6.0",
     "firebase-admin": "^13.0.1",
     "heic2any": "^0.0.4",
@@ -31,7 +29,6 @@
     "mailsplit": "^5.4.0",
     "mammoth": "^1.8.0",
     "next": "^16.0.3",
-    "node-fetch": "^3.3.2",
     "node-outlook": "^1.1.8",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
@@ -51,6 +48,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.8",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
     "@types/html-to-text": "^9.0.4",
     "@types/mailparser": "^3.4.4",
     "@types/node": "^25.0.2",
@@ -58,8 +57,10 @@
     "@types/react": "^19.0.2",
     "@types/react-dom": "^19.0.2",
     "@types/sanitize-html": "^2.13.0",
+    "@next/eslint-plugin-next": "^16.0.3",
     "eslint": "^9.15.0",
-    "eslint-config-next": "^16.0.3",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "postcss": "^8.4.47",
     "tailwindcss": "^4.0.8",
     "typescript": "^5.6.2"

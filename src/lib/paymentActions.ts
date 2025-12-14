@@ -2,19 +2,22 @@
 
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY is not defined");
+  return new Stripe(key);
+}
 
 export async function createPaymentIntent(amount: number) {
-  const product = process.env.NEXT_PUBLIC_STRIPE_PRODUCT_NAME;
+  const stripe = getStripe();
+  const product = process.env.NEXT_PUBLIC_STRIPE_PRODUCT_NAME || "credits";
 
   try {
-    if (!product) throw new Error("Stripe product name is not defined");
-
     const paymentIntent = await stripe.paymentIntents.create({
       amount,
       currency: "usd",
       metadata: { product },
-      description: `Payment for product ${process.env.NEXT_PUBLIC_STRIPE_PRODUCT_NAME}`,
+      description: `Payment for product ${product}`,
     });
 
     return paymentIntent.client_secret;
@@ -25,14 +28,10 @@ export async function createPaymentIntent(amount: number) {
 }
 
 export async function validatePaymentIntent(paymentIntentId: string) {
+  const stripe = getStripe();
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
-
-    if (paymentIntent.status === "succeeded") {
-      return paymentIntent;
-    } else {
-      throw new Error("Payment was not successful");
-    }
+    return paymentIntent;
   } catch (error) {
     console.error("Error validating payment intent:", error);
     throw new Error("Failed to validate payment intent");

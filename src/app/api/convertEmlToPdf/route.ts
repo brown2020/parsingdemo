@@ -1,7 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { simpleParser, AddressObject } from "mailparser";
 import puppeteer from "puppeteer";
 import { PDFDocument } from "pdf-lib";
+import {
+  asPdfAttachment,
+  fileToBuffer,
+  getFormFile,
+  getOptionalFormString,
+  jsonError,
+} from "../_shared";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
@@ -9,22 +16,16 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
   let browser;
   try {
-    const { fileBuffer, filename, userId } = await req.json();
-
-    // Convert ArrayBuffer to Buffer
-    const buffer = Buffer.from(fileBuffer);
-    const bufferSize = buffer.length / (1024 * 1024); // Size in MB
-    console.log(`Processing file of size: ${bufferSize.toFixed(2)} MB`);
-
-    if (bufferSize > 40) {
-      throw new Error("File size exceeds 50MB limit");
-    }
+    const formData = await req.formData();
+    const file = getFormFile(formData);
+    const userId = getOptionalFormString(formData, "userId") || "";
+    const filenameBase =
+      getOptionalFormString(formData, "filenameBase") ||
+      file.name.replace(/\.[^/.]+$/, "");
+    const buffer = await fileToBuffer(file);
 
     // Parse the EML file using mailparser
-    console.time("Parse EML");
     const parsedEmail = await simpleParser(buffer);
-    console.timeEnd("Parse EML");
-    console.log("EML parsing complete");
 
     // Helper function to extract email addresses as a string
     const extractEmails = (
@@ -54,7 +55,6 @@ export async function POST(req: NextRequest) {
     `;
 
     // Launch Puppeteer with increased timeout and memory
-    console.time("Launch Puppeteer");
     browser = await puppeteer.launch({
       headless: true,
       args: [
@@ -70,78 +70,43 @@ export async function POST(req: NextRequest) {
       ],
       timeout: 300000, // 5 minutes timeout
     });
-    console.timeEnd("Launch Puppeteer");
-    console.log("Puppeteer launched");
 
     const page = await browser.newPage();
-    console.log("New page created");
 
     // Set the timeout for the page
     page.setDefaultNavigationTimeout(300000); // 5 minutes timeout
     page.setDefaultTimeout(300000); // 5 minutes timeout
 
-    // Monitor page events
-    page.on("error", (error: any) => {
-      console.error("Page error:", error);
-    });
-    page.on("pageerror", (error: any) => {
-      console.error("Page error:", error);
-    });
-    page.on("close", () => {
-      console.error("Page closed");
-    });
-
-    console.log("Setting HTML content");
-    console.time("Set HTML Content");
-
     try {
       await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-      console.timeEnd("Set HTML Content");
-      console.log("HTML content set");
     } catch (setContentError) {
       console.error("Error setting HTML content:", setContentError);
       throw setContentError; // Re-throw after logging
     }
 
     // Generate PDF
-    console.time("Generate PDF");
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
     });
-    console.timeEnd("Generate PDF");
-    console.log("PDF generated");
-
-    console.log("Closing Puppeteer");
     await browser.close();
-    console.log("Puppeteer closed");
 
     // Load the PDF document with pdf-lib
     const pdfDoc = await PDFDocument.load(pdfBuffer);
-    pdfDoc.setTitle(filename);
-    pdfDoc.setAuthor(userId);
+    pdfDoc.setTitle(filenameBase);
+    if (userId) pdfDoc.setAuthor(userId);
 
     // Serialize the PDFDocument to bytes (a Uint8Array)
     const pdfBytes = await pdfDoc.save();
 
     // Return PDF response
-    return new NextResponse(Buffer.from(pdfBytes), {
-      headers: {
-        "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${filename}.pdf"`,
-      },
-    });
+    return asPdfAttachment(pdfBytes, filenameBase);
   } catch (error: unknown) {
-    const typedError = error as Error;
-    console.error(`Error occurred: ${typedError.message}`);
+    const message = error instanceof Error ? error.message : "unknown error";
+    console.error(message);
     if (browser) {
-      console.log("Closing Puppeteer due to error");
       await browser.close();
-      console.log("Puppeteer closed after error");
     }
-    return new NextResponse(
-      JSON.stringify({ error: typedError?.message || "unknown error" }),
-      { status: 500 }
-    );
+    return jsonError(message, 500);
   }
 }

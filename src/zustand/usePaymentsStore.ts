@@ -1,9 +1,10 @@
 import { create } from "zustand";
 import {
   collection,
-  addDoc,
+  doc,
+  getDoc,
+  setDoc,
   query,
-  where,
   getDocs,
   Timestamp,
 } from "firebase/firestore";
@@ -23,7 +24,7 @@ interface PaymentsStoreState {
   paymentsLoading: boolean;
   paymentsError: string | null;
   fetchPayments: () => Promise<void>;
-  addPayment: (payment: Omit<PaymentType, "createdAt">) => Promise<void>;
+  addPayment: (payment: Omit<PaymentType, "createdAt">) => Promise<boolean>;
   checkIfPaymentProcessed: (paymentId: string) => Promise<PaymentType | null>;
 }
 
@@ -35,7 +36,6 @@ export const usePaymentsStore = create<PaymentsStoreState>((set) => ({
   fetchPayments: async () => {
     const uid = useAuthStore.getState().uid;
     if (!uid) {
-      console.error("Invalid UID for fetchPayments");
       return;
     }
 
@@ -47,12 +47,15 @@ export const usePaymentsStore = create<PaymentsStoreState>((set) => ({
       const payments = querySnapshot.docs.map((doc) => ({
         id: doc.id,
         amount: doc.data().amount,
-        createdAt: doc.data().createdAt,
+        createdAt: doc.data().createdAt ?? null,
         status: doc.data().status,
       }));
 
       // Sort payments by createdAt with newest at the top
-      payments.sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+      payments.sort(
+        (a, b) =>
+          (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
+      );
 
       set({ payments, paymentsLoading: false });
     } catch (error: unknown) {
@@ -66,40 +69,31 @@ export const usePaymentsStore = create<PaymentsStoreState>((set) => ({
   addPayment: async (payment) => {
     const uid = useAuthStore.getState().uid;
     if (!uid) {
-      console.error("Invalid UID for addPayment");
-      return;
+      return false;
     }
 
     set({ paymentsLoading: true });
 
     try {
-      // Query to check if the payment with the same id already exists
-      const q = query(
-        collection(db, "users", uid, "payments"),
-        where("id", "==", payment.id)
-      );
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        toast.error("Payment with this ID already exists.");
+      const paymentRef = doc(db, "users", uid, "payments", payment.id);
+      const existing = await getDoc(paymentRef);
+      if (existing.exists()) {
         set({ paymentsLoading: false });
-        return;
+        toast.error("Payment already recorded.");
+        return false;
       }
 
-      const newPaymentDoc = await addDoc(
-        collection(db, "users", uid, "payments"),
-        {
-          id: payment.id,
-          amount: payment.amount,
-          createdAt: Timestamp.now(),
-          status: payment.status,
-        }
-      );
-
-      const newPayment = {
-        id: newPaymentDoc.id,
+      const createdAt = Timestamp.now();
+      await setDoc(paymentRef, {
         amount: payment.amount,
-        createdAt: Timestamp.now(),
+        createdAt,
+        status: payment.status,
+      });
+
+      const newPayment: PaymentType = {
+        id: payment.id,
+        amount: payment.amount,
+        createdAt,
         status: payment.status,
       };
 
@@ -108,18 +102,21 @@ export const usePaymentsStore = create<PaymentsStoreState>((set) => ({
 
         // Sort payments by createdAt with newest at the top
         updatedPayments.sort(
-          (a, b) => b.createdAt!.toMillis() - a.createdAt!.toMillis()
+          (a, b) =>
+            (b.createdAt?.toMillis?.() ?? 0) - (a.createdAt?.toMillis?.() ?? 0)
         );
 
         return { payments: updatedPayments, paymentsLoading: false };
       });
 
       toast.success("Payment added successfully.");
+      return true;
     } catch (error: unknown) {
       const errorMessage =
         error instanceof Error ? error.message : "An unknown error occurred";
       console.error("Error adding payment:", errorMessage);
       set({ paymentsError: errorMessage, paymentsLoading: false });
+      return false;
     }
   },
 
@@ -127,18 +124,16 @@ export const usePaymentsStore = create<PaymentsStoreState>((set) => ({
     const uid = useAuthStore.getState().uid;
     if (!uid) return null;
 
-    const paymentsRef = collection(db, "users", uid, "payments");
-    const q = query(
-      paymentsRef,
-      where("id", "==", paymentId),
-      where("status", "==", "succeeded")
-    );
-    const querySnapshot = await getDocs(q);
+    const paymentRef = doc(db, "users", uid, "payments", paymentId);
+    const snap = await getDoc(paymentRef);
+    if (!snap.exists()) return null;
 
-    if (!querySnapshot.empty) {
-      return querySnapshot.docs[0].data() as PaymentType;
-    }
-
-    return null;
+    const data = snap.data();
+    return {
+      id: snap.id,
+      amount: data.amount,
+      createdAt: data.createdAt ?? null,
+      status: data.status,
+    } as PaymentType;
   },
 }));
