@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
     console.log("API request data constructed:", JSON.stringify(testBody));
 
     // Send Request to Gemini API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
     const apiResponse = await fetch(apiUrl, {
       method: "POST",
       headers: {

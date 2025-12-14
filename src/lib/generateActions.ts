@@ -13,7 +13,7 @@ const axiosInstance = axios.create({
 
 export async function continueConversation(messages: CoreMessage[]) {
   const result = streamText({
-    model: google("models/gemini-1.5-pro-latest"),
+    model: google("gemini-2.5-flash"),
     messages,
   });
 
@@ -60,7 +60,7 @@ export async function analyzeDocuments(docs: string[], prompt: string) {
   const messages: CoreMessage[] = [{ content: finalPrompt, role: "user" }];
 
   const result = streamText({
-    model: google("models/gemini-1.5-pro-latest"),
+    model: google("gemini-2.5-flash"),
     // model: openai("gpt-4o"),
     messages,
   });
