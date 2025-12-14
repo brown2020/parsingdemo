@@ -17,11 +17,13 @@ import {
   updateProfile,
 } from "firebase/auth";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export default function Header() {
   const { getToken, isSignedIn } = useAuth();
   const { user } = useUser();
+  const pathname = usePathname();
   const setAuthDetails = useAuthStore((state) => state.setAuthDetails);
   const clearAuthDetails = useAuthStore((state) => state.clearAuthDetails);
   useInitializeStores();
@@ -65,22 +67,44 @@ export default function Header() {
   }, [clearAuthDetails, getToken, isSignedIn, setAuthDetails, user]);
 
   return (
-    <div className="flex h-14 items-center justify-between px-4 py-2">
-      <Link href="/" className="font-medium text-xl">
-        ParsingDemo
-      </Link>
+    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
+      <div className="container-app flex h-14 items-center justify-between">
+        <Link href="/" className="font-semibold tracking-tight">
+          ParsingDemo
+        </Link>
 
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <div className="flex gap-2 items-center">
-          <Link href="/documents">Documents</Link>
-          <Link href="/account">Account</Link>
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+        <SignedIn>
+          <nav className="flex items-center gap-1">
+            <Link
+              href="/documents"
+              className={`btn btn-ghost ${
+                pathname?.startsWith("/documents")
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-700"
+              }`}
+            >
+              Documents
+            </Link>
+            <Link
+              href="/account"
+              className={`btn btn-ghost ${
+                pathname?.startsWith("/account")
+                  ? "bg-slate-100 text-slate-900"
+                  : "text-slate-700"
+              }`}
+            >
+              Account
+            </Link>
 
-          <UserButton />
-        </div>
-      </SignedIn>
-    </div>
+            <div className="ml-1">
+              <UserButton />
+            </div>
+          </nav>
+        </SignedIn>
+      </div>
+    </header>
   );
 }

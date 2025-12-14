@@ -39,22 +39,23 @@ const FileItem: React.FC<FileItemProps> = ({
     <li
       ref={ref}
       key={file.id}
-      className="relative group flex items-center justify-between p-2 border rounded-md hover:bg-gray-100"
+      className="relative group flex items-center justify-between gap-2 rounded-md border border-slate-200 bg-white p-3 hover:bg-slate-50"
     >
       <input
         type="checkbox"
         checked={isSelected}
         onChange={(e) => onSelect(file, e.target.checked)}
-        className="mr-2"
+        className="h-4 w-4 accent-blue-600"
       />
       <span
         onClick={() => onClick(file)}
-        className="text-blue-600 hover:underline cursor-pointer flex-1"
+        className="link cursor-pointer flex-1 truncate"
+        title={file.name}
       >
         {file.name}
       </span>
       <select
-        className="mr-2"
+        className="select"
         value={file.client}
         onChange={(e) => onClientChange(file, e.target.value)}
       >
@@ -65,7 +66,8 @@ const FileItem: React.FC<FileItemProps> = ({
       {file.urlPdf && (
         <button
           onClick={() => window.open(file.urlPdf!, "_blank")}
-          className="text-blue-500 opacity-60 hover:opacity-100"
+          className="btn btn-ghost btn-icon text-slate-700"
+          aria-label="Open PDF"
         >
           <FileIcon />
         </button>
@@ -73,14 +75,16 @@ const FileItem: React.FC<FileItemProps> = ({
       {file.urlTxt && (
         <button
           onClick={() => onTextClick(file)}
-          className="text-blue-500 opacity-60 hover:opacity-100"
+          className="btn btn-ghost btn-icon text-slate-700"
+          aria-label="Open text preview"
         >
           <FileTextIcon />
         </button>
       )}
       <button
         onClick={() => onDelete(file.id)}
-        className="text-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        className="btn btn-ghost btn-icon text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+        aria-label="Delete file"
       >
         <Trash2 />
       </button>

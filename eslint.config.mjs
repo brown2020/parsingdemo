@@ -35,6 +35,9 @@ export default [
       ...tseslint.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/jsx-uses-react": "off",
+      // Too strict for common real-world patterns (data fetching effects, react-dnd refs)
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/refs": "off",
     },
   },
 ];

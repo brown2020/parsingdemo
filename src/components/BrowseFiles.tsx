@@ -195,83 +195,86 @@ const BrowseFiles: React.FC = () => {
 
   return (
     <DndProvider backend={HTML5Backend}>
-      <div className="max-w-4xl mx-auto p-6 bg-white shadow-md rounded-lg w-full">
-        <div className="text-3xl font-bold mb-6 text-center">Browse Files</div>
-        <div className="bg-gray-100 p-4 rounded-md mb-6 shadow-xs">
-          <div className="text-lg font-semibold">
-            <strong>User:</strong> {user.fullName}
-          </div>
-          <div className="text-lg">
-            <strong>User ID:</strong> {userId}
+      <div className="card w-full max-w-5xl mx-auto">
+        <div className="card-header">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="text-xl font-semibold">Documents</div>
+              <div className="muted text-sm">
+                Upload, convert, group, and analyze files.
+              </div>
+            </div>
+            <div className="muted text-sm">
+              Signed in as <span className="font-medium">{user.fullName}</span>
+            </div>
           </div>
         </div>
+        <div className="card-content">
+          <UploadZone
+            onDrop={onDrop}
+            onUpload={handleUpload}
+            selectedFiles={selectedFiles}
+          />
 
-        <UploadZone
-          onDrop={onDrop}
-          onUpload={handleUpload}
-          selectedFiles={selectedFiles}
-        />
+          {error && <div className="banner-error mt-4 mb-6">{error}</div>}
 
-        {error && (
-          <div className="text-red-600 font-semibold mt-4 mb-6">{error}</div>
-        )}
+          <div className="flex items-center gap-3 mb-6 mt-4">
+            <label className="font-semibold">Default group</label>
+            <select
+              value={group}
+              onChange={(e) => setGroup(e.target.value)}
+              className="select"
+            >
+              <option value="groupTwo">Group Two</option>
+              <option value="groupOne">Group One</option>
+            </select>
+          </div>
 
-        <div className="flex items-center space-x-4 mb-6 mt-4">
-          <label className="font-semibold text-lg">Group:</label>
-          <select
-            value={group}
-            onChange={(e) => setGroup(e.target.value)}
-            className="p-2 border rounded-md shadow-xs focus:ring-3 focus:ring-blue-500"
+          <button
+            className={`btn-destructive mb-6 ${
+              selectedFileIds.size === 0 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={handleDeleteSelectedFiles}
+            disabled={selectedFileIds.size === 0}
           >
-            <option value="groupTwo">Group Two</option>
-            <option value="groupOne">Group One</option>
-          </select>
+            Delete Selected Files
+          </button>
+
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              Group One
+            </h3>
+            <FileList
+              files={groupOneFiles}
+              clientType="groupOne"
+              onClientChange={handleGroupChange}
+              onDelete={handleDelete}
+              onClick={handleFileClick}
+              onTextClick={handleTextClick}
+              onSelect={handleSelect}
+              selectedFiles={selectedFileIds}
+            />
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">
+              Group Two
+            </h3>
+            <FileList
+              files={groupTwoFiles}
+              clientType="groupTwo"
+              onClientChange={handleGroupChange}
+              onDelete={handleDelete}
+              onClick={handleFileClick}
+              onTextClick={handleTextClick}
+              onSelect={handleSelect}
+              selectedFiles={selectedFileIds}
+            />
+          </div>
+
+          <ModalText isOpen={modalOpen} onClose={closeModal} file={modalFile} />
+          <SelectedFiles selectedFiles={selectedFilesList} />
         </div>
-
-        <button
-          className={`bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md mb-6 transition ${
-            selectedFileIds.size === 0 ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          onClick={handleDeleteSelectedFiles}
-          disabled={selectedFileIds.size === 0}
-        >
-          Delete Selected Files
-        </button>
-
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-700">
-            Group One Files:
-          </h3>
-          <FileList
-            files={groupOneFiles}
-            clientType="groupOne"
-            onClientChange={handleGroupChange}
-            onDelete={handleDelete}
-            onClick={handleFileClick}
-            onTextClick={handleTextClick}
-            onSelect={handleSelect}
-            selectedFiles={selectedFileIds}
-          />
-        </div>
-
-        <div className="mt-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-700">
-            Group Two Files:
-          </h3>
-          <FileList
-            files={groupTwoFiles}
-            clientType="groupTwo"
-            onClientChange={handleGroupChange}
-            onDelete={handleDelete}
-            onClick={handleFileClick}
-            onTextClick={handleTextClick}
-            onSelect={handleSelect}
-            selectedFiles={selectedFileIds}
-          />
-        </div>
-
-        <ModalText isOpen={modalOpen} onClose={closeModal} file={modalFile} />
-        <SelectedFiles selectedFiles={selectedFilesList} />
       </div>
     </DndProvider>
   );

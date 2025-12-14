@@ -13,44 +13,61 @@ const ModalText: React.FC<ModalTextProps> = ({ isOpen, onClose, file }) => {
   if (!isOpen || !file) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white p-4 rounded-lg max-w-lg w-full">
-        <button onClick={onClose} className="text-red-600 float-right">
-          X
-        </button>
-        <h2 className="text-xl font-bold mb-4">File Information</h2>
-        <p>
-          <strong>Filename:</strong> {file.name}
-        </p>
-        <div className="mb-4">
-          {file.urlPdf && (
-            <button
-              onClick={() => setView("pdf")}
-              className={`mr-2 p-2 ${
-                view === "pdf" ? "bg-blue-500 text-white" : "bg-gray-200"
-              }`}
-            >
-              View PDF
-            </button>
-          )}
-          {file.urlTxt && (
-            <button
-              onClick={() => setView("text")}
-              className={`mr-2 p-2 ${
-                view === "text" ? "bg-blue-500 text-white" : "bg-gray-200"
-              }`}
-            >
-              View Text
-            </button>
-          )}
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-label="File preview"
+    >
+      <div className="card w-full max-w-3xl overflow-hidden">
+        <div className="card-header flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-sm font-semibold">Preview</div>
+            <div className="muted text-sm truncate" title={file.name}>
+              {file.name}
+            </div>
+          </div>
+          <button onClick={onClose} className="btn btn-ghost btn-icon">
+            <span className="sr-only">Close</span>✕
+          </button>
         </div>
-        <div className="border p-4">
-          {view === "pdf" && file.urlPdf && (
-            <iframe src={file.urlPdf} className="w-full h-96" />
-          )}
-          {view === "text" && file.urlTxt && (
-            <iframe src={file.urlTxt} className="w-full h-96" />
-          )}
+
+        <div className="card-content space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {file.urlPdf && (
+              <button
+                onClick={() => setView("pdf")}
+                className={view === "pdf" ? "btn-primary" : "btn-ghost"}
+              >
+                PDF
+              </button>
+            )}
+            {file.urlTxt && (
+              <button
+                onClick={() => setView("text")}
+                className={view === "text" ? "btn-primary" : "btn-ghost"}
+              >
+                Text
+              </button>
+            )}
+          </div>
+
+          <div className="rounded-lg border border-slate-200 bg-white">
+            {view === "pdf" && file.urlPdf && (
+              <iframe
+                title="PDF preview"
+                src={file.urlPdf}
+                className="h-[70vh] w-full"
+              />
+            )}
+            {view === "text" && file.urlTxt && (
+              <iframe
+                title="Text preview"
+                src={file.urlTxt}
+                className="h-[70vh] w-full"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

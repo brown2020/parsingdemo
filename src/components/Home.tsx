@@ -11,47 +11,51 @@ export default function HomePage() {
   const fullName = useAuthStore((state) => state.authDisplayName);
 
   return (
-    <div className="flex flex-col h-full items-center justify-center p-5">
-      <div className="bg-white shadow-md rounded-lg p-8 max-w-md w-full">
-        <div className="text-2xl font-bold mb-4 text-center">ParsingDemo</div>
-        <div className="flex flex-col items-center mb-4">
-          {/* User Avatar */}
-          {photoUrl ? (
-            <Image
-              width={150}
-              height={150}
-              src={photoUrl}
-              alt="User Avatar"
-              className="w-24 h-24 rounded-full mb-2"
-            />
-          ) : (
-            <div className="flex items-center justify-center text-white bg-blue-500 w-24 h-24 rounded-full mb-2">
-              {fullName?.charAt(0).toUpperCase() || "U"}
-            </div>
-          )}
-
-          <div className="text-lg font-medium">
-            Clerk User: {uid || "No User"}
+    <div className="flex items-center justify-center py-10">
+      <div className="card w-full max-w-md">
+        <div className="card-header">
+          <div className="text-lg font-semibold">ParsingDemo</div>
+          <div className="muted text-sm">
+            Upload, convert, and analyze documents.
           </div>
         </div>
-        {firebaseUid ? (
-          <div className="text-center text-green-600 mb-4">
-            Logged Into Firebase: {firebaseUid}
+        <div className="card-content">
+          <div className="flex flex-col items-center mb-4">
+            {/* User Avatar */}
+            {photoUrl ? (
+              <Image
+                width={150}
+                height={150}
+                src={photoUrl}
+                alt="User Avatar"
+                className="w-24 h-24 rounded-full mb-2"
+              />
+            ) : (
+              <div className="flex items-center justify-center text-white bg-blue-500 w-24 h-24 rounded-full mb-2">
+                {fullName?.charAt(0).toUpperCase() || "U"}
+              </div>
+            )}
+
+            <div className="text-lg font-medium">
+              Clerk User: {uid || "No User"}
+            </div>
           </div>
-        ) : (
-          <div className="text-center text-red-600 mb-4">
-            Not Logged Into Firebase
-          </div>
-        )}
-        <div className="flex justify-around">
-          {firebaseUid && (
-            <Link
-              className="p-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 w-32 text-center"
-              href="/documents"
-            >
-              Documents
-            </Link>
+          {firebaseUid ? (
+            <div className="text-center text-green-700 mb-4 text-sm">
+              Logged Into Firebase: {firebaseUid}
+            </div>
+          ) : (
+            <div className="text-center text-red-700 mb-4 text-sm">
+              Not Logged Into Firebase
+            </div>
           )}
+          <div className="flex justify-center">
+            {firebaseUid && (
+              <Link className="btn-primary w-40" href="/documents">
+                Documents
+              </Link>
+            )}
+          </div>
         </div>
       </div>
     </div>

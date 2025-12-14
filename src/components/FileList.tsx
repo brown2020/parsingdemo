@@ -49,13 +49,15 @@ const FileList: React.FC<FileListProps> = ({
   return (
     <div
       ref={ref}
-      className={`p-4 border-2 rounded-md min-h-[4rem] ${
-        isOver ? "border-blue-400 bg-blue-50" : "border-dashed border-gray-400"
+      className={`rounded-lg border-2 p-4 min-h-16 transition-colors ${
+        isOver
+          ? "border-blue-400 bg-blue-50"
+          : "border-dashed border-slate-300 bg-white"
       }`}
     >
       <ul className="list-none pl-0 space-y-2">
         {files.length === 0 ? (
-          <li className="text-gray-500">Drop files here...</li>
+          <li className="muted text-sm">Drop files here…</li>
         ) : (
           files.map((file, index) => (
             <FileItem

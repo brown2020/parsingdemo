@@ -21,15 +21,20 @@ const UploadZone: React.FC<UploadZoneProps> = ({
     <div>
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-4 mb-4 cursor-pointer ${
-          isDragActive ? "border-blue-600" : "border-gray-400"
+        className={`rounded-lg border-2 border-dashed p-6 mb-4 cursor-pointer transition-colors ${
+          isDragActive
+            ? "border-blue-600 bg-blue-50"
+            : "border-slate-300 bg-white"
         }`}
       >
         <input {...getInputProps()} />
         {isDragActive ? (
-          <p>Drop the files here...</p>
+          <p className="font-medium">Drop the files here…</p>
         ) : (
-          <p>{`Drag 'n' drop some files here, or click to select files`}</p>
+          <div className="space-y-1">
+            <p className="font-medium">{`Drag & drop files here`}</p>
+            <p className="muted text-sm">{`or click to browse`}</p>
+          </div>
         )}
       </div>
       {selectedFiles.length > 0 && (
@@ -42,10 +47,7 @@ const UploadZone: React.FC<UploadZoneProps> = ({
           </ul>
         </div>
       )}
-      <button
-        onClick={onUpload}
-        className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700"
-      >
+      <button onClick={onUpload} className="btn-primary">
         Upload
       </button>
     </div>
