@@ -69,10 +69,11 @@ The main objective of ParsingDemo is to handle various document formats by first
 
 ## Tech Stack
 
-- **Next.js 16**: App Router, Route Handlers, Server Actions.
-- **Tailwind CSS v4**: Utility-first styling (plus a small set of reusable global “UI primitives” in `src/app/globals.css`).
+- **Next.js 16.1.1**: App Router, Route Handlers, Server Actions.
+- **React 19.2.3**: UI runtime.
+- **Tailwind CSS 4.1.18**: Utility-first styling (plus a small set of reusable global “UI primitives” in `src/app/globals.css`).
 - **Firebase**: Provides authentication, Firestore, and cloud storage.
-- **Clerk**: Manages user authentication and login.
+- **Clerk 6.36.5**: Manages user authentication and login.
 - **Stripe**: Handles payment processing.
 - **Mammoth**: Converts DOCX to HTML or plain text.
 - **Mailparser**: Parses email files (EML and MSG).
@@ -83,7 +84,7 @@ The main objective of ParsingDemo is to handle various document formats by first
 - **React Spinners**: Displays loading states.
 - **Zustand**: Manages application state.
 - **ESLint (flat config)**: Linting via `eslint.config.mjs`.
-- **Vercel AI SDK**: Streaming AI analysis from server actions (`src/lib/generateActions.ts`).
+- **Vercel AI SDK 6.0.3**: Streaming AI analysis from server actions (`src/lib/generateActions.ts`).
 
 ---
 
@@ -91,7 +92,7 @@ The main objective of ParsingDemo is to handle various document formats by first
 
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) (v18 or higher)
+- [Node.js](https://nodejs.org/) (**v20.9.0 or higher**) — required by Next.js 16.1.1 (see `package-lock.json`).
 - [Yarn](https://yarnpkg.com/) (optional, but recommended)
 - A Firebase account with a project set up.
 - A Clerk account for user authentication.
@@ -271,7 +272,9 @@ This project uses **`src/proxy.ts`** (Next.js 16) to protect routes with Clerk.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project is licensed under the **GNU Affero General Public License v3.0**. See [`LICENSE.md`](LICENSE.md) for details.
+
+> Note: AGPL-3.0 has network-copyleft requirements; if you deploy a modified version and make it accessible over a network, you must provide users access to the corresponding source as described in the license.
 
 ---
 

@@ -1,14 +1,14 @@
 "use server";
 
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { CoreMessage, streamText } from "ai";
+import { streamText, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { PDFParse } from "pdf-parse";
 
 const FETCH_TIMEOUT_MS = 300_000; // 5 minutes
 const MAX_COMBINED_DOCUMENT_CHARS = 200_000;
 
-export async function continueConversation(messages: CoreMessage[]) {
+export async function continueConversation(messages: ModelMessage[]) {
   const result = streamText({
     model: google("gemini-2.5-flash"),
     messages,
@@ -68,7 +68,7 @@ export async function analyzeDocuments(docs: string[], prompt: string) {
   const extractedText = await generateDocumentText(docs);
   const finalPrompt = `prompt: ${prompt}\ndocument: ${extractedText}\n\nReturn plain text only. Do not use markdown or any other formatting.`;
 
-  const messages: CoreMessage[] = [{ content: finalPrompt, role: "user" }];
+  const messages: ModelMessage[] = [{ content: finalPrompt, role: "user" }];
 
   const result = streamText({
     model: google("gemini-2.5-flash"),
