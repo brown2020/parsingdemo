@@ -23,7 +23,7 @@
     "heic2any": "^0.0.4",
     "html-to-text": "^9.0.5",
     "html2canvas": "^1.4.1",
-    "jspdf": "^3.0.0",
+    "jspdf": "^4.0.0",
     "lucide-react": "^0.562.0",
     "mailparser": "^3.7.1",
     "mailsplit": "^5.4.0",

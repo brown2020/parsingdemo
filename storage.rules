@@ -1,0 +1,51 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * See firestore.rules: this app stores objects under {userId}/... where userId
+     * is the Clerk user id. We allow access if the authenticated token matches
+     * that id via uid/sub/user_id/clerk_id/clerkUserId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && (
+        request.auth.uid == userId ||
+        request.auth.token.sub == userId ||
+        request.auth.token.user_id == userId ||
+        request.auth.token.clerk_id == userId ||
+        request.auth.token.clerkUserId == userId
+      );
+    }
+
+    function isAllowedContentType() {
+      return request.resource.contentType.matches('application/pdf')
+        || request.resource.contentType.matches('text/plain');
+    }
+
+    function isUnderMaxSize() {
+      // 50MB
+      return request.resource.size < 50 * 1024 * 1024;
+    }
+
+    // Default deny.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    // User documents (generated PDFs + extracted text).
+    match /{userId}/documents/{fileName} {
+      allow read: if isOwner(userId);
+
+      // Create/update: only the owner, only expected types, size-limited.
+      allow create, update: if isOwner(userId) && isUnderMaxSize() && isAllowedContentType();
+
+      // Delete: only the owner (request.resource is undefined on delete).
+      allow delete: if isOwner(userId);
+    }
+  }
+}
+
