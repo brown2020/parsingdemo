@@ -24,7 +24,7 @@
     "html-to-text": "^9.0.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.0.0",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "^0.563.0",
     "mailparser": "^3.7.1",
     "mailsplit": "^5.4.0",
     "mammoth": "^1.8.0",
