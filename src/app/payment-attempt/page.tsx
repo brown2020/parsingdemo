@@ -1,5 +1,6 @@
 "use client";
 
+import AuthGuard from "@/components/AuthGuard";
 import PaymentCheckoutPage from "@/components/PaymentCheckoutPage";
 import convertToSubcurrency from "@/utils/convertToSubcurrency";
 
@@ -16,15 +17,17 @@ export default function PaymentAttempt() {
   const amount = 99.99;
 
   return (
-    <Elements
-      stripe={stripePromise}
-      options={{
-        mode: "payment",
-        amount: convertToSubcurrency(amount),
-        currency: "usd",
-      }}
-    >
-      <PaymentCheckoutPage amount={amount} />
-    </Elements>
+    <AuthGuard>
+      <Elements
+        stripe={stripePromise}
+        options={{
+          mode: "payment",
+          amount: convertToSubcurrency(amount),
+          currency: "usd",
+        }}
+      >
+        <PaymentCheckoutPage amount={amount} />
+      </Elements>
+    </AuthGuard>
   );
 }

@@ -21,10 +21,10 @@ npm run lint       # Run ESLint
 src/
 ├── app/                 # Next.js App Router pages and API routes
 │   ├── api/            # Document conversion endpoints (POST, multipart/form-data)
-│   ├── browse-files/   # Main file management page
+│   ├── documents/      # Main file management page
 │   ├── payments/       # Stripe payment pages
-│   ├── profile/        # User profile page
-│   └── sign-in|up/     # Clerk auth pages
+│   ├── account/        # User profile page
+│   └── sign-in|up/     # Firebase Auth pages
 ├── components/         # React client components
 ├── firebase/           # Firebase client & admin SDK initialization
 ├── lib/               # Server actions (AI streaming, payments)
@@ -37,7 +37,7 @@ src/
 
 - **Framework**: Next.js 16 (App Router, Server Actions)
 - **UI**: React 19, Tailwind CSS 4
-- **Auth**: Clerk (route protection via `src/proxy.ts`)
+- **Auth**: Firebase Auth (Google sign-in, email/password)
 - **Database**: Firebase Firestore
 - **Storage**: Firebase Storage
 - **Payments**: Stripe
@@ -87,8 +87,7 @@ users/{uid}/
 
 See `.env.example` for full list. Key groups:
 - `FIREBASE_*` - Server-side Firebase Admin SDK
-- `NEXT_PUBLIC_FIREBASE_*` - Client-side Firebase config
-- `NEXT_PUBLIC_CLERK_*` / `CLERK_SECRET_KEY` - Clerk auth
+- `NEXT_PUBLIC_FIREBASE_*` - Client-side Firebase config (includes auth)
 - `NEXT_PUBLIC_STRIPE_KEY` / `STRIPE_SECRET_KEY` - Stripe payments
 - `GEMINI_API_KEY`, `OPENAI_API_KEY`, etc. - AI providers
 

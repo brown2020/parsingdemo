@@ -3,68 +3,32 @@
 import { auth } from "@/firebase/firebaseClient";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useInitializeStores } from "@/zustand/useInitializeStores";
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  useAuth,
-  UserButton,
-  useUser,
-} from "@clerk/nextjs";
-import {
-  signInWithCustomToken,
-  signOut as firebaseSignOut,
-  updateProfile,
-} from "firebase/auth";
+import { signOut } from "firebase/auth";
+import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function Header() {
-  const { getToken, isSignedIn } = useAuth();
-  const { user } = useUser();
+  const router = useRouter();
   const pathname = usePathname();
-  const setAuthDetails = useAuthStore((state) => state.setAuthDetails);
-  const clearAuthDetails = useAuthStore((state) => state.clearAuthDetails);
+  const uid = useAuthStore((state) => state.uid);
+  const displayName = useAuthStore((state) => state.authDisplayName);
+  const photoUrl = useAuthStore((state) => state.authPhotoUrl);
+  const [showMenu, setShowMenu] = useState(false);
+
   useInitializeStores();
 
-  useEffect(() => {
-    const syncAuthState = async () => {
-      if (isSignedIn && user) {
-        try {
-          const token = await getToken({ template: "integration_firebase" });
-          if (!token)
-            throw new Error("Missing Clerk Firebase integration token");
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
 
-          const userCredentials = await signInWithCustomToken(auth, token);
-
-          // Update Firebase user profile
-          await updateProfile(userCredentials.user, {
-            displayName: user.fullName,
-            photoURL: user.imageUrl,
-          });
-          setAuthDetails({
-            uid: user.id,
-            firebaseUid: userCredentials.user.uid,
-            authEmail: user.emailAddresses[0].emailAddress,
-            authDisplayName: user.fullName || "",
-            authPhotoUrl: user.imageUrl,
-            authReady: true,
-            authEmailVerified:
-              user.emailAddresses?.[0]?.verification?.status === "verified",
-          });
-        } catch (error) {
-          console.error("Error signing in with custom token:", error);
-          clearAuthDetails();
-        }
-      } else {
-        await firebaseSignOut(auth);
-        clearAuthDetails();
-      }
-    };
-
-    syncAuthState();
-  }, [clearAuthDetails, getToken, isSignedIn, setAuthDetails, user]);
+  const isSignedIn = !!uid;
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/80 backdrop-blur">
@@ -73,10 +37,11 @@ export default function Header() {
           ParsingDemo
         </Link>
 
-        <SignedOut>
-          <SignInButton />
-        </SignedOut>
-        <SignedIn>
+        {!isSignedIn ? (
+          <Link href="/sign-in" className="btn-primary">
+            Sign In
+          </Link>
+        ) : (
           <nav className="flex items-center gap-1">
             <Link
               href="/documents"
@@ -99,11 +64,51 @@ export default function Header() {
               Account
             </Link>
 
-            <div className="ml-1">
-              <UserButton />
+            {/* User menu */}
+            <div className="relative ml-2">
+              <button
+                onClick={() => setShowMenu(!showMenu)}
+                className="flex items-center justify-center w-9 h-9 rounded-full overflow-hidden border-2 border-slate-200 hover:border-slate-300 transition-colors"
+              >
+                {photoUrl ? (
+                  <Image
+                    src={photoUrl}
+                    alt={displayName || "User"}
+                    width={36}
+                    height={36}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full bg-blue-600 text-white flex items-center justify-center text-sm font-medium">
+                    {displayName?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                )}
+              </button>
+
+              {showMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-10"
+                    onClick={() => setShowMenu(false)}
+                  />
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 py-1 z-20">
+                    <div className="px-4 py-2 border-b border-slate-100">
+                      <p className="text-sm font-medium text-slate-900 truncate">
+                        {displayName || "User"}
+                      </p>
+                    </div>
+                    <button
+                      onClick={handleSignOut}
+                      className="w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </nav>
-        </SignedIn>
+        )}
       </div>
     </header>
   );

@@ -2,13 +2,14 @@
 
 ## Executive Summary
 
-This plan identified 47 specific issues across 7 categories. **18 critical and important issues have been fixed.** The remaining items are lower priority architectural improvements.
+This plan identified 47 specific issues across 7 categories. **19 critical and important issues have been fixed.** The remaining items are lower priority architectural improvements.
 
 ---
 
 ## COMPLETED FIXES
 
 ### Critical Security Fixes (All Complete)
+- [x] **#1 Auth Architecture** - Migrated from Clerk to Firebase Auth (Google + email/password)
 - [x] **#3 Payment Double-Charging** - Added refs to prevent duplicate processing on refresh
 - [x] **#4 Puppeteer Resource Leaks** - All 4 API routes now use try/finally with proper cleanup
 - [x] **#5 Zustand Race Conditions** - Profile store now updates state after Firebase confirms
@@ -27,7 +28,7 @@ This plan identified 47 specific issues across 7 categories. **18 critical and i
 - [x] **#11 Color Palette** - Replaced gray-* with slate-* throughout
 - [x] **#12 Broken Gradient** - Fixed `bg-linear-to-tr` to `bg-gradient-to-tr`
 - [x] **#13 Duplicate Component** - Deleted PaymentsDisplay.tsx, using PaymentsPage
-- [x] **#14 Unused Dependencies** - Removed node-outlook, mailsplit, @kenjiuno/msgreader
+- [x] **#14 Unused Dependencies** - Removed node-outlook, mailsplit, @kenjiuno/msgreader, @clerk/nextjs
 - [x] **#15 Shared API Code** - Extracted `extractEmails()` to `_shared.ts`
 - [x] **#20 Error Styling** - Using `.banner-error` class consistently
 - [x] **#33 Home Page** - Improved with landing page for guests, dashboard for users
@@ -35,13 +36,6 @@ This plan identified 47 specific issues across 7 categories. **18 critical and i
 ---
 
 ## REMAINING ITEMS (Lower Priority)
-
-### 1. Authentication Architecture Mismatch
-**Issue**: App uses Clerk instead of required Firebase Auth
-- **Location**: `src/proxy.ts`, `src/app/sign-in/`, `src/app/sign-up/`
-- **Problem**: Requirements specify Firebase Auth (Google, email/password, email link) but Clerk is primary auth
-- **Fix**: Either migrate to Firebase Auth OR document this as an intentional deviation
-- **Files to modify**: `src/firebase/firebaseClient.ts`, sign-in/sign-up pages, `src/zustand/useAuthStore.ts`
 
 ### 2. API Keys Stored in Plaintext in Firestore
 **Issue**: User API keys stored unencrypted in Firestore

@@ -13,7 +13,6 @@
     "@ai-sdk/openai": "^3.0.1",
     "@ai-sdk/react": "^3.0.3",
     "@ai-sdk/rsc": "^2.0.3",
-    "@clerk/nextjs": "^6.0.2",
     "@stripe/react-stripe-js": "^5.4.0",
     "@stripe/stripe-js": "^8.5.2",
     "ai": "^6.0.3",

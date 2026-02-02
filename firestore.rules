@@ -7,23 +7,10 @@ service cloud.firestore {
     }
 
     /**
-     * This app keys user data by Clerk userId (not necessarily Firebase auth uid).
-     * Depending on your Clerk->Firebase integration, the Clerk user id may appear as:
-     * - request.auth.uid
-     * - request.auth.token.sub
-     * - request.auth.token.user_id
-     * - request.auth.token.clerk_id / clerkUserId
-     *
-     * Adjust these if your token uses different claim names.
+     * User data is keyed by Firebase Auth uid.
      */
     function isOwner(userId) {
-      return isSignedIn() && (
-        request.auth.uid == userId ||
-        request.auth.token.sub == userId ||
-        request.auth.token.user_id == userId ||
-        request.auth.token.clerk_id == userId ||
-        request.auth.token.clerkUserId == userId
-      );
+      return isSignedIn() && request.auth.uid == userId;
     }
 
     // Validate payment fields

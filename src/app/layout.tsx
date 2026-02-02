@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
-import { ClerkProvider } from "@clerk/nextjs";
+import AuthProvider from "@/components/AuthProvider";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
@@ -18,17 +18,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider dynamic>
-      <html lang="en" className="h-full">
-        <body className="flex min-h-screen flex-col">
+    <html lang="en" className="h-full">
+      <body className="flex min-h-screen flex-col">
+        <AuthProvider>
           <Header />
           <main className="page flex-1">
             <div className="page-inner">{children}</div>
           </main>
           <Footer />
           <Toaster position="top-right" />
-        </body>
-      </html>
-    </ClerkProvider>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }

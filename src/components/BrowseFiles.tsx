@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback } from "react";
-import { useAuth, useUser } from "@clerk/nextjs";
+import { useAuthStore } from "@/zustand/useAuthStore";
 import {
   fetchFiles,
   uploadFile,
@@ -16,8 +16,8 @@ import SelectedFiles from "@/components/SelectedFiles";
 import { FileUrl } from "@/types/FileUrl";
 
 const BrowseFiles: React.FC = () => {
-  const { userId } = useAuth();
-  const { user } = useUser();
+  const uid = useAuthStore((state) => state.uid);
+  const authDisplayName = useAuthStore((state) => state.authDisplayName);
   const [files, setFiles] = useState<FileUrl[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -29,20 +29,20 @@ const BrowseFiles: React.FC = () => {
   );
 
   const handleFetchFiles = useCallback(async () => {
-    if (userId) {
+    if (uid) {
       try {
-        const fileUrls = await fetchFiles(userId);
+        const fileUrls = await fetchFiles(uid);
         setFiles(fileUrls);
       } catch (fetchError) {
         console.error(fetchError);
         setError("Failed to fetch files.");
       }
     }
-  }, [userId]);
+  }, [uid]);
 
   useEffect(() => {
     handleFetchFiles();
-  }, [userId, handleFetchFiles]);
+  }, [uid, handleFetchFiles]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     setSelectedFiles((prevFiles) => [...prevFiles, ...acceptedFiles]);
@@ -69,11 +69,11 @@ const BrowseFiles: React.FC = () => {
   };
 
   const handleUpload = async () => {
-    if (selectedFiles.length > 0 && userId) {
+    if (selectedFiles.length > 0 && uid) {
       try {
         for (const file of selectedFiles) {
           const fileType = determineFileType(file); // Automatically determine the file type
-          await uploadFile(file, userId, group, fileType); // Pass the determined file type
+          await uploadFile(file, uid, group, fileType); // Pass the determined file type
         }
         setSelectedFiles([]);
         await handleFetchFiles();
@@ -86,14 +86,14 @@ const BrowseFiles: React.FC = () => {
   };
 
   const handleDelete = async (docId: string) => {
-    if (!userId) {
+    if (!uid) {
       setError("User ID is missing. Please log in again.");
       return;
     }
 
     if (confirm("Are you sure you want to delete this file?")) {
       try {
-        await deleteFile(userId, docId);
+        await deleteFile(uid, docId);
         await handleFetchFiles();
       } catch (deleteError: unknown) {
         const typedError = deleteError as Error;
@@ -104,7 +104,7 @@ const BrowseFiles: React.FC = () => {
   };
 
   const handleDeleteSelectedFiles = async () => {
-    if (!userId) {
+    if (!uid) {
       setError("User ID is missing. Please log in again.");
       return;
     }
@@ -113,7 +113,7 @@ const BrowseFiles: React.FC = () => {
       try {
         const fileIdsArray = Array.from(selectedFileIds);
         for (const fileId of fileIdsArray) {
-          await deleteFile(userId, fileId);
+          await deleteFile(uid, fileId);
         }
         setSelectedFileIds(new Set()); // Clear selected files
         await handleFetchFiles();
@@ -136,7 +136,7 @@ const BrowseFiles: React.FC = () => {
     );
     setFiles(newFiles);
     try {
-      await updateFileMetadata(userId!, file.id, newGroup, file.type);
+      await updateFileMetadata(uid!, file.id, newGroup, file.type);
     } catch (error) {
       console.error(error);
       setError("Failed to update file metadata.");
@@ -187,7 +187,7 @@ const BrowseFiles: React.FC = () => {
     setModalFile(null);
   };
 
-  if (!user) return null;
+  if (!uid) return null;
 
   const selectedFilesList = files.filter((file) =>
     selectedFileIds.has(file.id)
@@ -205,7 +205,7 @@ const BrowseFiles: React.FC = () => {
               </div>
             </div>
             <div className="muted text-sm">
-              Signed in as <span className="font-medium">{user.fullName}</span>
+              Signed in as <span className="font-medium">{authDisplayName || "User"}</span>
             </div>
           </div>
         </div>
