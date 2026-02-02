@@ -26,6 +26,28 @@ service cloud.firestore {
       );
     }
 
+    // Validate payment fields
+    function isValidPayment() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['amount', 'status', 'createdAt'])
+        && data.amount is number
+        && data.amount > 0
+        && data.status is string
+        && data.status in ['pending', 'succeeded', 'failed'];
+    }
+
+    // Validate profile fields
+    function isValidProfileUpdate() {
+      let data = request.resource.data;
+      // Only allow safe fields to be written from client
+      let allowedFields = ['email', 'contactEmail', 'displayName', 'photoUrl',
+                           'emailVerified', 'credits', 'openai_api_key',
+                           'anthropic_api_key', 'google_gen_ai_api_key',
+                           'mistral_api_key', 'fireworks_api_key'];
+      return data.keys().hasOnly(allowedFields)
+        && (!('credits' in data) || (data.credits is number && data.credits >= 0));
+    }
+
     // Deny by default.
     match /{document=**} {
       allow read, write: if false;
@@ -40,14 +62,19 @@ service cloud.firestore {
         allow read, create, update, delete: if isOwner(userId);
       }
 
-      // Payment records under the user.
+      // Payment records under the user - immutable after creation
       match /payments/{paymentId} {
-        allow read, create, update, delete: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPayment();
+        // Payments should not be updated or deleted (immutable financial records)
+        allow update, delete: if false;
       }
 
       // Profile doc(s) under the user.
       match /profile/{profileId} {
-        allow read, create, update, delete: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidProfileUpdate();
+        allow delete: if isOwner(userId);
       }
     }
   }

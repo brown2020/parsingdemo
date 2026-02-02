@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(tree:*)",
+      "Bash(ls:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
+import { AddressObject } from "mailparser";
 
 export const MAX_FILE_SIZE_MB = 40;
+
+// Shared helper for extracting email addresses as a string
+export function extractEmails(
+  addresses: AddressObject | AddressObject[] | undefined
+): string {
+  if (!addresses) return "";
+  if (Array.isArray(addresses)) {
+    return addresses.map((addr) => addr.text).join(", ");
+  }
+  return addresses.text;
+}
 
 export function jsonError(message: string, status = 500) {
   return NextResponse.json({ error: message }, { status });

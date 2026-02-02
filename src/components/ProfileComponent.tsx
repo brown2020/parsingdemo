@@ -50,16 +50,16 @@ const ApiKeyInput = ({
   value: string;
   onChange: (id: keyof ProfileType, value: string) => void;
 }) => (
-  <div className="flex flex-col">
-    <label htmlFor={field.id} className="text-sm font-light">
-      {field.label}:
+  <div className="flex flex-col gap-1">
+    <label htmlFor={field.id} className="text-sm font-medium text-slate-700">
+      {field.label}
     </label>
     <input
       type="text"
       id={field.id}
       value={value}
       onChange={(e) => onChange(field.id, e.target.value)}
-      className="border border-gray-300 rounded-md px-3 py-3 h-10"
+      className="input"
       placeholder={field.placeholder}
     />
   </div>
@@ -109,40 +109,41 @@ export default function ProfileComponent() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-col sm:flex-row px-5 py-3 gap-3 border border-gray-500 rounded-md">
-        <div className="flex gap-2 w-full items-center">
-          <div className="flex-1">
-            Credits Available: {Math.round(profile.credits)}
+      <div className="card p-4">
+        <div className="flex flex-col sm:flex-row gap-3 items-center">
+          <div className="flex-1 text-lg">
+            <span className="text-slate-600">Credits Available:</span>{" "}
+            <span className="font-semibold">{Math.round(profile.credits)}</span>
           </div>
-          <Link
-            className="bg-blue-500 text-white px-3 py-2 rounded-md hover:opacity-50 flex-1 text-center"
-            href={"/payment-attempt"}
-          >
+          <Link className="btn-primary" href={"/payment-attempt"}>
             Buy 10,000 Credits
           </Link>
         </div>
       </div>
-      <div className="flex flex-col px-5 py-3 gap-3 border border-gray-500 rounded-md">
-        {apiKeyFields.map((field) => (
-          <ApiKeyInput
-            key={field.id}
-            field={field}
-            value={(apiKeys[field.id] as string) || ""}
-            onChange={handleChange}
-          />
-        ))}
+      <div className="card p-4">
+        <h3 className="text-lg font-semibold mb-4">API Keys</h3>
+        <div className="flex flex-col gap-4">
+          {apiKeyFields.map((field) => (
+            <ApiKeyInput
+              key={field.id}
+              field={field}
+              value={(apiKeys[field.id] as string) || ""}
+              onChange={handleChange}
+            />
+          ))}
 
-        <button
-          onClick={handleApiKeyChange}
-          disabled={
-            !Object.entries(apiKeys).some(
-              ([key, value]) => value !== profile[key as keyof ProfileType]
-            )
-          }
-          className="bg-blue-500 text-white px-3 py-2 rounded-md hover:opacity-50 disabled:opacity-50"
-        >
-          Update API Keys
-        </button>
+          <button
+            onClick={handleApiKeyChange}
+            disabled={
+              !Object.entries(apiKeys).some(
+                ([key, value]) => value !== profile[key as keyof ProfileType]
+              )
+            }
+            className="btn-primary self-start"
+          >
+            Update API Keys
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import { useAuthStore } from "@/zustand/useAuthStore";
 import { usePaymentsStore } from "@/zustand/usePaymentsStore";
 import useProfileStore from "@/zustand/useProfileStore";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { validatePaymentIntent } from "@/lib/paymentActions";
 
 type Props = {
@@ -22,6 +22,10 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
   const [status, setStatus] = useState("");
   const [createdAtMs, setCreatedAtMs] = useState<number | null>(null);
 
+  // Use ref to prevent double-processing on React strict mode / fast refresh
+  const processingRef = useRef(false);
+  const processedPaymentRef = useRef<string | null>(null);
+
   const addPayment = usePaymentsStore((state) => state.addPayment);
   const checkIfPaymentProcessed = usePaymentsStore(
     (state) => state.checkIfPaymentProcessed
@@ -37,8 +41,17 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
       return;
     }
 
+    // Prevent double-processing: check if already processing or already processed this payment
+    if (processingRef.current || processedPaymentRef.current === payment_intent) {
+      return;
+    }
+
     const handlePaymentSuccess = async () => {
+      // Set processing flag immediately to prevent race conditions
+      processingRef.current = true;
+
       try {
+        // Double-check in database if payment was already processed
         const existing = await checkIfPaymentProcessed(payment_intent);
         if (existing?.status === "succeeded") {
           setMessage("Payment already processed");
@@ -46,6 +59,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
           setAmount(existing.amount);
           setStatus(existing.status);
           setCreatedAtMs(existing.createdAt?.toMillis?.() ?? null);
+          processedPaymentRef.current = payment_intent;
           return;
         }
 
@@ -58,17 +72,21 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
           setStatus(data.status);
           setCreatedAtMs((data.created ?? 0) * 1000);
 
-          // Add payment to store
+          // Add payment to store (uses payment ID as idempotency key)
+          // addPayment checks if payment already exists before recording
           const recorded = await addPayment({
             id: data.id,
             amount: data.amount,
             status: data.status,
           });
 
-          // Add credits to profile
+          // Add credits to profile only if payment was newly recorded
           if (recorded) {
             await addCredits(CREDITS_PER_PURCHASE);
           }
+
+          // Mark this payment as processed in this session
+          processedPaymentRef.current = payment_intent;
         } else {
           console.error("Payment validation failed:", data.status);
           setMessage("Payment validation failed");
@@ -78,6 +96,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
         setMessage("Error handling payment success");
       } finally {
         setLoading(false);
+        processingRef.current = false;
       }
     };
 
@@ -85,7 +104,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
   }, [payment_intent, addPayment, addCredits, checkIfPaymentProcessed, uid]);
 
   return (
-    <main className="max-w-6xl w-full mx-auto p-10 text-white text-center border m-10 rounded-md bg-linear-to-tr from-blue-500 to-purple-500">
+    <main className="max-w-6xl w-full mx-auto p-10 text-white text-center border m-10 rounded-md bg-gradient-to-tr from-blue-500 to-purple-500">
       {loading ? (
         <div>validating...</div>
       ) : id ? (

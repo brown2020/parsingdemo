@@ -22,8 +22,12 @@ service firebase.storage {
     }
 
     function isAllowedContentType() {
-      return request.resource.contentType.matches('application/pdf')
-        || request.resource.contentType.matches('text/plain');
+      // Check both MIME type and file extension to prevent spoofing
+      let isPdf = request.resource.contentType.matches('application/pdf')
+        && request.resource.name.matches('.*\\.pdf$');
+      let isText = request.resource.contentType.matches('text/plain')
+        && request.resource.name.matches('.*\\.txt$');
+      return isPdf || isText;
     }
 
     function isUnderMaxSize() {

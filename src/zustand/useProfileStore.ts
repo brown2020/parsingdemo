@@ -114,10 +114,12 @@ const useProfileStore = create<ProfileState>((set, get) => ({
       const userRef = doc(db, `users/${uid}/profile/userData`);
       const updatedProfile = { ...get().profile, ...newProfile };
 
-      set({ profile: updatedProfile });
+      // Update Firebase first, then update local state on success
       await updateDoc(userRef, updatedProfile);
+      set({ profile: updatedProfile });
     } catch (error) {
       console.error("Error updating profile:", error);
+      throw error; // Re-throw so callers can handle the error
     }
   },
 
@@ -134,6 +136,7 @@ const useProfileStore = create<ProfileState>((set, get) => ({
       const newCredits = profile.credits - amount;
       const userRef = doc(db, `users/${uid}/profile/userData`);
 
+      // Update Firebase first, then update local state on success
       await updateDoc(userRef, { credits: newCredits });
       set({ profile: { ...profile, credits: newCredits } });
 
@@ -148,16 +151,19 @@ const useProfileStore = create<ProfileState>((set, get) => ({
     const uid = useAuthStore.getState().uid;
     if (!uid) return;
 
+    // Get fresh profile state to avoid stale data
     const profile = get().profile;
     const newCredits = profile.credits + amount;
 
     try {
       const userRef = doc(db, `users/${uid}/profile/userData`);
 
+      // Update Firebase first, then update local state on success
       await updateDoc(userRef, { credits: newCredits });
       set({ profile: { ...profile, credits: newCredits } });
     } catch (error) {
       console.error("Error adding credits:", error);
+      throw error; // Re-throw so callers can handle the error
     }
   },
 }));

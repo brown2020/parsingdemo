@@ -87,14 +87,14 @@ const SelectedFiles: React.FC<SelectedFilesProps> = ({ selectedFiles }) => {
           minRows={3}
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          className="w-full p-2 border rounded-md"
+          className="input"
           placeholder="Type your prompt here..."
         />
       </div>
       <div className="mt-4">
         <button
           onClick={handleAnalyzeDocuments}
-          className="px-4 py-2 bg-blue-600 text-white rounded-sm hover:bg-blue-700 flex items-center justify-center"
+          className="btn-primary"
           disabled={loading}
         >
           {loading ? (
@@ -105,14 +105,14 @@ const SelectedFiles: React.FC<SelectedFilesProps> = ({ selectedFiles }) => {
         </button>
       </div>
       {apiResponse && (
-        <div className="mt-4 p-4 border rounded-md bg-gray-100">
+        <div className="mt-4 p-4 card bg-slate-50">
           <h4 className="text-lg font-semibold mb-2">API Response:</h4>
           <pre className="whitespace-pre-wrap">{apiResponse}</pre>
         </div>
       )}
 
       {streamResponse && (
-        <div className="mt-4 p-4 border rounded-md bg-gray-100">
+        <div className="mt-4 p-4 card bg-slate-50">
           <h4 className="text-lg font-semibold mb-2">Stream Response:</h4>
           <pre className="whitespace-pre-wrap">{streamResponse}</pre>
         </div>

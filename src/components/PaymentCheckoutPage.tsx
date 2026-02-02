@@ -87,20 +87,20 @@ export default function PaymentCheckoutPage({ amount }: Props) {
 
   return (
     <main className="flex flex-col w-full items-center max-w-6xl mx-auto py-10">
-      <div className="mb-10">
-        <h1 className="text-4xl">Buy 10,000 Credits</h1>
-        <h2 className="text-2xl">
-          Purchase amount: <span className="font-bold">${amount}</span>
-        </h2>
+      <div className="mb-10 text-center">
+        <h1 className="text-3xl font-bold mb-2">Buy 10,000 Credits</h1>
+        <p className="text-xl text-slate-600">
+          Purchase amount: <span className="font-bold text-slate-900">${amount}</span>
+        </p>
       </div>
-      <form onSubmit={handleSubmit} className="bg-white p-2 rounded-md w-full">
+      <form onSubmit={handleSubmit} className="card p-6 w-full max-w-md">
         {clientSecret && <PaymentElement />}
 
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
+        {errorMessage && <div className="banner-error mt-4">{errorMessage}</div>}
 
         <button
           disabled={!stripe || loading}
-          className="text-white w-full p-5 bg-black mt-2 rounded-md font-bold disabled:opacity-50 disabled:animate-pulse"
+          className="btn-secondary w-full mt-4 py-3"
         >
           {!loading ? `Pay $${amount}` : "Processing..."}
         </button>

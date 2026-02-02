@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
@@ -21,9 +22,10 @@ export default function RootLayout({
       <html lang="en" className="h-full">
         <body className="flex min-h-screen flex-col">
           <Header />
-          <main className="page">
+          <main className="page flex-1">
             <div className="page-inner">{children}</div>
           </main>
+          <Footer />
           <Toaster position="top-right" />
         </body>
       </html>

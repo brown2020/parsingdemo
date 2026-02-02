@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface AuthState {
   uid: string;
@@ -27,11 +28,28 @@ const defaultAuthState: AuthState = {
   authReady: false,
 };
 
-export const useAuthStore = create<AuthStore>((set) => ({
-  ...defaultAuthState,
+export const useAuthStore = create<AuthStore>()(
+  persist(
+    (set) => ({
+      ...defaultAuthState,
 
-  setAuthDetails: (details: Partial<AuthState>) =>
-    set((state) => ({ ...state, ...details })),
+      setAuthDetails: (details: Partial<AuthState>) =>
+        set((state) => ({ ...state, ...details })),
 
-  clearAuthDetails: () => set({ ...defaultAuthState }),
-}));
+      clearAuthDetails: () => set({ ...defaultAuthState }),
+    }),
+    {
+      name: "auth-storage",
+      // Only persist non-sensitive data
+      partialize: (state) => ({
+        uid: state.uid,
+        firebaseUid: state.firebaseUid,
+        authEmail: state.authEmail,
+        authDisplayName: state.authDisplayName,
+        authPhotoUrl: state.authPhotoUrl,
+        authEmailVerified: state.authEmailVerified,
+        // Don't persist authReady - should be set fresh on each session
+      }),
+    }
+  )
+);

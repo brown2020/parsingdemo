@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { simpleParser, AddressObject, ParsedMail } from "mailparser";
-import puppeteer from "puppeteer";
+import { simpleParser, ParsedMail } from "mailparser";
+import puppeteer, { Browser } from "puppeteer";
 import { PDFDocument } from "pdf-lib";
 import sanitizeHtml from "sanitize-html";
 import { htmlToText } from "html-to-text";
@@ -10,13 +10,15 @@ import {
   getFormFile,
   getOptionalFormString,
   jsonError,
+  extractEmails,
 } from "../_shared";
 
 export const maxDuration = 300;
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  let browser;
+  let browser: Browser | null = null;
+
   try {
     const formData = await req.formData();
     const file = getFormFile(formData);
@@ -28,17 +30,6 @@ export async function POST(req: NextRequest) {
 
     // Parse the MSG file using mailparser
     const parsedEmail: ParsedMail = await simpleParser(buffer);
-
-    // Helper function to extract email addresses as a string
-    const extractEmails = (
-      addresses: AddressObject | AddressObject[] | undefined
-    ): string => {
-      if (!addresses) return "";
-      if (Array.isArray(addresses)) {
-        return addresses.map((addr) => addr.text).join(", ");
-      }
-      return addresses.text;
-    };
 
     // Format the date
     const formattedDate = parsedEmail.date
@@ -107,40 +98,41 @@ export async function POST(req: NextRequest) {
 
     const page = await browser.newPage();
 
-    // Set the timeout for the page
-    page.setDefaultNavigationTimeout(300000);
-    page.setDefaultTimeout(300000);
-
     try {
+      // Set the timeout for the page
+      page.setDefaultNavigationTimeout(300000);
+      page.setDefaultTimeout(300000);
+
       await page.setContent(htmlContent, { waitUntil: "networkidle0" });
-    } catch (setContentError) {
-      console.error("Error setting HTML content:", setContentError);
-      throw setContentError;
+
+      // Generate PDF
+      const pdfBuffer = await page.pdf({
+        format: "A4",
+        printBackground: true,
+      });
+
+      // Load the PDF document with pdf-lib
+      const pdfDoc = await PDFDocument.load(pdfBuffer);
+      pdfDoc.setTitle(filenameBase);
+      if (userId) pdfDoc.setAuthor(userId);
+
+      // Serialize the PDFDocument to bytes (a Uint8Array)
+      const pdfBytes = await pdfDoc.save();
+
+      // Return PDF response
+      return asPdfAttachment(pdfBytes, filenameBase);
+    } finally {
+      // Always close page explicitly
+      await page.close();
     }
-
-    // Generate PDF
-    const pdfBuffer = await page.pdf({
-      format: "A4",
-      printBackground: true,
-    });
-    await browser.close();
-
-    // Load the PDF document with pdf-lib
-    const pdfDoc = await PDFDocument.load(pdfBuffer);
-    pdfDoc.setTitle(filenameBase);
-    if (userId) pdfDoc.setAuthor(userId);
-
-    // Serialize the PDFDocument to bytes (a Uint8Array)
-    const pdfBytes = await pdfDoc.save();
-
-    // Return PDF response
-    return asPdfAttachment(pdfBytes, filenameBase);
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "unknown error";
     console.error(message);
+    return jsonError(message, 500);
+  } finally {
+    // Always close browser in finally block
     if (browser) {
       await browser.close();
     }
-    return jsonError(message, 500);
   }
 }
