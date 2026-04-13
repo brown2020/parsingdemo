@@ -1,10 +1,11 @@
+import { fixupPluginRules } from "@eslint/compat";
 import next from "@next/eslint-plugin-next";
 import react from "eslint-plugin-react";
 import reactHooks from "eslint-plugin-react-hooks";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import tsParser from "@typescript-eslint/parser";
 
-export default [
+const config = [
   {
     ignores: ["**/node_modules/**", "**/.next/**", "**/dist/**"],
   },
@@ -23,7 +24,7 @@ export default [
     },
     plugins: {
       "@next/next": next,
-      react,
+      react: fixupPluginRules(react),
       "react-hooks": reactHooks,
       "@typescript-eslint": tseslint,
     },
@@ -35,9 +36,10 @@ export default [
       ...tseslint.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/jsx-uses-react": "off",
-      // Too strict for common real-world patterns (data fetching effects, react-dnd refs)
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/refs": "off",
     },
   },
 ];
+
+export default config;

@@ -72,7 +72,6 @@ export async function analyzeDocuments(docs: string[], prompt: string) {
 
   const result = streamText({
     model: google("gemini-2.5-flash"),
-    // model: openai("gpt-4o"),
     messages,
   });
 

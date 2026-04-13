@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { AddressObject } from "mailparser";
 
-export const MAX_FILE_SIZE_MB = 40;
+const MAX_FILE_SIZE_MB = 40;
 
 // Shared helper for extracting email addresses as a string
 export function extractEmails(
@@ -18,7 +18,7 @@ export function jsonError(message: string, status = 500) {
   return NextResponse.json({ error: message }, { status });
 }
 
-export function assertMaxBytes(bytes: number, maxMb = MAX_FILE_SIZE_MB) {
+function assertMaxBytes(bytes: number, maxMb = MAX_FILE_SIZE_MB) {
   const maxBytes = maxMb * 1024 * 1024;
   if (bytes > maxBytes) {
     throw new Error(`File size exceeds ${maxMb}MB limit`);
@@ -36,14 +36,6 @@ export function getFormFile(formData: FormData, key = "file") {
   const value = formData.get(key);
   if (!value || !(value instanceof File)) {
     throw new Error(`Missing file field "${key}"`);
-  }
-  return value;
-}
-
-export function getFormString(formData: FormData, key: string) {
-  const value = formData.get(key);
-  if (typeof value !== "string" || !value.trim()) {
-    throw new Error(`Missing field "${key}"`);
   }
   return value;
 }
