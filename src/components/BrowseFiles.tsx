@@ -131,12 +131,13 @@ const BrowseFiles: React.FC = () => {
   };
 
   const handleGroupChange = async (file: FileUrl, newGroup: string) => {
+    if (!uid) return;
     const newFiles = files.map((f) =>
       f.id === file.id ? { ...f, client: newGroup } : f
     );
     setFiles(newFiles);
     try {
-      await updateFileMetadata(uid!, file.id, newGroup, file.type);
+      await updateFileMetadata(uid, file.id, newGroup, file.type);
     } catch (error) {
       console.error(error);
       setError("Failed to update file metadata.");
