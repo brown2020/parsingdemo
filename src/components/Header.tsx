@@ -4,6 +4,7 @@ import { auth } from "@/firebase/firebaseClient";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useInitializeStores } from "@/zustand/useInitializeStores";
 import { signOut } from "firebase/auth";
+import { deleteCookie } from "cookies-next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -21,6 +22,10 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
+      // Explicitly delete auth cookies before signing out
+      deleteCookie("authToken", { path: "/" });
+      deleteCookie("__session", { path: "/" });
+
       await signOut(auth);
       router.push("/");
     } catch (error) {
