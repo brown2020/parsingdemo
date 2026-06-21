@@ -10,21 +10,25 @@
 
 ## Current State
 
-- Phase: Findings Backlog
-- Task: T-003
+- Phase: Execute Fixes and Improvements
+- Task: T-004/T-006
 - Status: Ready for commit-push checkpoint
-- Last command: `npm outdated --json`
-- Last result: Reported patch/minor package drift; findings backlog written with 8 findings
-- Last pushed commit: `6db06bca53ff2573db1b579a9f22fd5a024962ef`
+- Last command: `npm run build`
+- Last result: Passed after route-helper and file-size guard batch
+- Last pushed commit: `0fb24b6a35a52cfd373d6087fe1eddf3de89ba72`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope findings backlog report updates
-- Next action: Run quality gate, inspect diff, commit `chore: add codebase findings backlog`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope route-helper source changes and execution report updates
+- Next action: Run quality gate, inspect diff, commit `fix: harden conversion route helpers`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `agent-runs/2026-06-20-codebase-pass/03-findings-backlog.md` | Safe-to-commit | Findings backlog report |
+| `src/app/api/_shared.ts` | In-scope source | T-004 file-size guard |
+| `src/app/api/convertImageToPdf/route.ts` | In-scope source | T-004 shared buffer guard |
+| `src/app/api/convertEmlToText/route.ts` | In-scope source | T-006 duplicate helper cleanup |
+| `src/app/api/convertMsgToText/route.ts` | In-scope source | T-006 duplicate helper cleanup |
+| `agent-runs/2026-06-20-codebase-pass/04-execute-fixes-and-improvements.md` | Safe-to-commit | Execution report |
 | `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
 | `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |
 
@@ -45,6 +49,8 @@
 | `npm run build` | Pass | Next.js build and TypeScript pass completed |
 | `npm outdated --json` | Findings | Patch/minor updates available; some major updates deferred |
 | `npm ls sanitize-html protobufjs firebase-admin next mailparser --depth=4` | Findings | Identified direct/transitive vulnerable package locations |
+| `find src/app/api -type d -empty -print` | Pass | No empty API directories remain |
+| `npm run build` | Pass | Next.js build and TypeScript pass completed after route-helper batch |
 
 ## Blockers
 

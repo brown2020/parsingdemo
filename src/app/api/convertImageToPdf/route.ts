@@ -3,6 +3,7 @@ import puppeteer, { Browser } from "puppeteer";
 import { PDFDocument } from "pdf-lib";
 import {
   asPdfAttachment,
+  fileToBuffer,
   getFormFile,
   getOptionalFormString,
   jsonError,
@@ -29,10 +30,10 @@ export async function POST(req: NextRequest) {
     const page = await browser.newPage();
 
     try {
-      const arrayBuffer = await file.arrayBuffer();
-      const base64Image = `data:${file.type};base64,${Buffer.from(
-        arrayBuffer
-      ).toString("base64")}`;
+      const imageBuffer = await fileToBuffer(file);
+      const base64Image = `data:${file.type};base64,${imageBuffer.toString(
+        "base64"
+      )}`;
       const content = `
         <style>
           body, html {

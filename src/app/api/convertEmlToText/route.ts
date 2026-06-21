@@ -1,7 +1,8 @@
 import { NextRequest } from "next/server";
-import { simpleParser, AddressObject } from "mailparser";
+import { simpleParser } from "mailparser";
 import {
   asTextAttachment,
+  extractEmails,
   fileToBuffer,
   getFormFile,
   jsonError,
@@ -18,17 +19,6 @@ export async function POST(req: NextRequest) {
 
     // Parse the EML file using mailparser
     const parsedEmail = await simpleParser(buffer);
-
-    // Helper function to extract email addresses as a string
-    const extractEmails = (
-      addresses: AddressObject | AddressObject[] | undefined
-    ): string => {
-      if (!addresses) return "";
-      if (Array.isArray(addresses)) {
-        return addresses.map((addr) => addr.text).join(", ");
-      }
-      return addresses.text;
-    };
 
     // Format the date
     const formattedDate = parsedEmail.date

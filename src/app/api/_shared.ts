@@ -26,6 +26,7 @@ function assertMaxBytes(bytes: number, maxMb = MAX_FILE_SIZE_MB) {
 }
 
 export async function fileToBuffer(file: File) {
+  assertMaxBytes(file.size);
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   assertMaxBytes(buffer.length);

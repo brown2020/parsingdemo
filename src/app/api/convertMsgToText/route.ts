@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
-import { simpleParser, AddressObject, ParsedMail } from "mailparser";
+import { simpleParser, ParsedMail } from "mailparser";
 import { htmlToText } from "html-to-text";
 import sanitizeHtml from "sanitize-html";
 import {
   asTextAttachment,
+  extractEmails,
   fileToBuffer,
   getFormFile,
   jsonError,
@@ -20,17 +21,6 @@ export async function POST(req: NextRequest) {
 
     // Parse the MSG file using mailparser
     const parsedEmail: ParsedMail = await simpleParser(buffer);
-
-    // Helper function to extract email addresses as a string
-    const extractEmails = (
-      addresses: AddressObject | AddressObject[] | undefined
-    ): string => {
-      if (!addresses) return "";
-      if (Array.isArray(addresses)) {
-        return addresses.map((addr) => addr.text).join(", ");
-      }
-      return addresses.text;
-    };
 
     // Format the date
     const formattedDate = parsedEmail.date
