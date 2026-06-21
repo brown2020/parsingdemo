@@ -10,23 +10,21 @@
 
 ## Current State
 
-- Phase: Package and Dead-Code Cleanup
-- Task: T-007
+- Phase: Review
+- Task: T-008
 - Status: Ready for commit-push checkpoint
 - Last command: `npm run build`
-- Last result: Passed after compatible audit fix and unused dependency removal; audit reduced to 10 moderate transitive findings
-- Last pushed commit: `66eb6f82631d9cf995f0c8b8e4464edb5b444659`
+- Last result: Judge Loop PASS; lint and build passed
+- Last pushed commit: `fa9daf2be21deead64465d1470f9375a55fe19e1`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope package cleanup and package report updates
-- Next action: Run quality gate, inspect diff, commit `chore: update packages and remove dead code`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope review report updates
+- Next action: Run quality gate, inspect diff, commit `chore: add review findings`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `package.json` | In-scope package | T-007 remove unused direct dependencies |
-| `package-lock.json` | In-scope package | T-007 compatible audit fix and dependency removal |
-| `agent-runs/2026-06-20-codebase-pass/05-package-and-dead-code-cleanup.md` | Safe-to-commit | Package cleanup report |
+| `agent-runs/2026-06-20-codebase-pass/06-review.md` | Safe-to-commit | Review report |
 | `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
 | `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |
 
@@ -52,6 +50,8 @@
 | `npm audit fix` | Partial | Compatible fixes applied; remaining findings require force/breaking path |
 | `npm uninstall @ai-sdk/openai @ai-sdk/react html2canvas jspdf react-pdf` | Pass | Removed unused direct dependencies |
 | `npm run build` | Pass | Next.js build and TypeScript pass completed after package cleanup |
+| `npm run lint` | Pass | Review gate |
+| `npm run build` | Pass | Review build gate |
 
 ## Blockers
 
