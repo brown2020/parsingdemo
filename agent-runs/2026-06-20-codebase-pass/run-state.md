@@ -10,22 +10,23 @@
 
 ## Current State
 
-- Phase: Execute Fixes and Improvements
-- Task: T-005
+- Phase: Package and Dead-Code Cleanup
+- Task: T-007
 - Status: Ready for commit-push checkpoint
 - Last command: `npm run build`
-- Last result: Passed after upload partial-failure cleanup
-- Last pushed commit: `1855ca693dabca02582d327ce7df5e625e20bbab`
+- Last result: Passed after compatible audit fix and unused dependency removal; audit reduced to 10 moderate transitive findings
+- Last pushed commit: `66eb6f82631d9cf995f0c8b8e4464edb5b444659`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope upload cleanup source change and execution report updates
-- Next action: Run quality gate, inspect diff, commit `fix: clean up partial upload artifacts`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope package cleanup and package report updates
+- Next action: Run quality gate, inspect diff, commit `chore: update packages and remove dead code`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `src/utils/fileUtils.ts` | In-scope source | T-005 partial upload cleanup |
-| `agent-runs/2026-06-20-codebase-pass/04-execute-fixes-and-improvements.md` | Safe-to-commit | Execution report |
+| `package.json` | In-scope package | T-007 remove unused direct dependencies |
+| `package-lock.json` | In-scope package | T-007 compatible audit fix and dependency removal |
+| `agent-runs/2026-06-20-codebase-pass/05-package-and-dead-code-cleanup.md` | Safe-to-commit | Package cleanup report |
 | `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
 | `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |
 
@@ -48,6 +49,9 @@
 | `npm ls sanitize-html protobufjs firebase-admin next mailparser --depth=4` | Findings | Identified direct/transitive vulnerable package locations |
 | `find src/app/api -type d -empty -print` | Pass | No empty API directories remain |
 | `npm run build` | Pass | Next.js build and TypeScript pass completed after route-helper batch |
+| `npm audit fix` | Partial | Compatible fixes applied; remaining findings require force/breaking path |
+| `npm uninstall @ai-sdk/openai @ai-sdk/react html2canvas jspdf react-pdf` | Pass | Removed unused direct dependencies |
+| `npm run build` | Pass | Next.js build and TypeScript pass completed after package cleanup |
 
 ## Blockers
 
@@ -55,5 +59,5 @@
 
 ## Deferred Items
 
-- Audit findings and package drift are deferred to Package and Dead-Code Cleanup.
+- Remaining moderate transitive audit findings in Next/PostCSS and Firebase/uuid are deferred with evidence.
 - Product/security direction for Firestore-stored user API keys is deferred; this workflow will document the risk but not invent product behavior.
