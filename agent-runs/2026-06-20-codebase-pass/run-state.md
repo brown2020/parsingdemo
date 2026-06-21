@@ -11,23 +11,20 @@
 ## Current State
 
 - Phase: Execute Fixes and Improvements
-- Task: T-004/T-006
+- Task: T-005
 - Status: Ready for commit-push checkpoint
 - Last command: `npm run build`
-- Last result: Passed after route-helper and file-size guard batch
-- Last pushed commit: `0fb24b6a35a52cfd373d6087fe1eddf3de89ba72`
+- Last result: Passed after upload partial-failure cleanup
+- Last pushed commit: `1855ca693dabca02582d327ce7df5e625e20bbab`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope route-helper source changes and execution report updates
-- Next action: Run quality gate, inspect diff, commit `fix: harden conversion route helpers`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope upload cleanup source change and execution report updates
+- Next action: Run quality gate, inspect diff, commit `fix: clean up partial upload artifacts`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `src/app/api/_shared.ts` | In-scope source | T-004 file-size guard |
-| `src/app/api/convertImageToPdf/route.ts` | In-scope source | T-004 shared buffer guard |
-| `src/app/api/convertEmlToText/route.ts` | In-scope source | T-006 duplicate helper cleanup |
-| `src/app/api/convertMsgToText/route.ts` | In-scope source | T-006 duplicate helper cleanup |
+| `src/utils/fileUtils.ts` | In-scope source | T-005 partial upload cleanup |
 | `agent-runs/2026-06-20-codebase-pass/04-execute-fixes-and-improvements.md` | Safe-to-commit | Execution report |
 | `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
 | `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |

@@ -7,6 +7,7 @@ import {
 } from "firebase/storage";
 import {
   collection,
+  type DocumentReference,
   doc,
   addDoc,
   setDoc,
@@ -26,6 +27,25 @@ import {
   convertMsgToText,
   convertPdfToText,
 } from "./convertUtils";
+
+async function cleanupPartialUpload(
+  docRef: DocumentReference | null,
+  storagePaths: string[]
+) {
+  const cleanupTasks: Promise<unknown>[] = storagePaths.map((path) =>
+    deleteObject(ref(storage, path))
+  );
+
+  if (docRef) {
+    cleanupTasks.push(deleteDoc(docRef));
+  }
+
+  const results = await Promise.allSettled(cleanupTasks);
+  const failures = results.filter((result) => result.status === "rejected");
+  if (failures.length > 0) {
+    console.error("Partial upload cleanup failed", failures);
+  }
+}
 
 export const fetchFiles = async (userId: string): Promise<FileUrl[]> => {
   const fileCollection = collection(doc(db, "users", userId), "documents");
@@ -124,31 +144,41 @@ export const uploadFile = async (
   const userDocRef = doc(db, "users", userId);
   await setDoc(userDocRef, { id: userId }, { merge: true });
 
-  const docRef = await addDoc(collection(userDocRef, "documents"), {
-    name: file.name,
-    client,
-    type,
-  });
+  let docRef: DocumentReference | null = null;
+  const uploadedPaths: string[] = [];
 
-  const storagePathPdf = `${userId}/documents/${docRef.id}.pdf`;
-  await uploadBytes(ref(storage, storagePathPdf), pdfBlob);
-  const urlPdf = await getDownloadURL(ref(storage, storagePathPdf));
+  try {
+    docRef = await addDoc(collection(userDocRef, "documents"), {
+      name: file.name,
+      client,
+      type,
+    });
 
-  const storagePathTxt = `${userId}/documents/${docRef.id}.txt`;
-  await uploadBytes(ref(storage, storagePathTxt), textBlob);
-  const urlTxt = await getDownloadURL(ref(storage, storagePathTxt));
+    const storagePathPdf = `${userId}/documents/${docRef.id}.pdf`;
+    await uploadBytes(ref(storage, storagePathPdf), pdfBlob);
+    uploadedPaths.push(storagePathPdf);
+    const urlPdf = await getDownloadURL(ref(storage, storagePathPdf));
 
-  await setDoc(
-    docRef,
-    {
-      id: docRef.id,
-      pathPdf: storagePathPdf,
-      pathTxt: storagePathTxt,
-      urlPdf,
-      urlTxt,
-    },
-    { merge: true }
-  );
+    const storagePathTxt = `${userId}/documents/${docRef.id}.txt`;
+    await uploadBytes(ref(storage, storagePathTxt), textBlob);
+    uploadedPaths.push(storagePathTxt);
+    const urlTxt = await getDownloadURL(ref(storage, storagePathTxt));
+
+    await setDoc(
+      docRef,
+      {
+        id: docRef.id,
+        pathPdf: storagePathPdf,
+        pathTxt: storagePathTxt,
+        urlPdf,
+        urlTxt,
+      },
+      { merge: true }
+    );
+  } catch (error) {
+    await cleanupPartialUpload(docRef, uploadedPaths);
+    throw error;
+  }
 };
 
 const prepareHeicFile = async (
