@@ -10,23 +10,23 @@
 
 ## Current State
 
-- Phase: Preflight and Repo Docs
-- Task: T-001
+- Phase: Baseline Validation
+- Task: T-002
 - Status: Ready for commit-push checkpoint
-- Last command: `npm run lint`
-- Last result: Passed after `npm ci` refreshed local dependencies from the lockfile
-- Last pushed commit: `f9b2c5e9969815dbdee4a0453b9d312e459eee04`
+- Last command: `npm run build`
+- Last result: Passed; `npm audit --audit-level=low` reported 28 dependency vulnerabilities for package cleanup triage
+- Last pushed commit: `42af02dfc68d6ae873402c2f7bbfcab3318233cd`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope preflight docs and run reports
-- Next action: Run quality gate, inspect diff, commit `docs: map repository guidance and spec`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope baseline validation report updates
+- Next action: Run quality gate, inspect diff, commit `test: document baseline validation`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `AGENTS.md` | Safe-to-commit | Repo guidance created by Preflight and Repo Docs |
-| `SPEC.md` | Safe-to-commit | Current-state specification created by Preflight and Repo Docs |
-| `agent-runs/2026-06-20-codebase-pass/*` | Safe-to-commit | Required run reports and resume ledger |
+| `agent-runs/2026-06-20-codebase-pass/02-baseline-validation.md` | Safe-to-commit | Baseline report |
+| `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
+| `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |
 
 ## Checks Run
 
@@ -41,6 +41,8 @@
 | `npm run lint` | Initial environment failure | Missing local `@eslint/compat` before install |
 | `npm ci` | Pass | Installed 714 packages; audit findings recorded |
 | `npm run lint` | Pass | Primary quality gate clean |
+| `npm audit --audit-level=low` | Findings | 28 vulnerabilities: 2 low, 16 moderate, 8 high, 2 critical |
+| `npm run build` | Pass | Next.js build and TypeScript pass completed |
 
 ## Blockers
 
