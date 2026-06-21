@@ -10,21 +10,21 @@
 
 ## Current State
 
-- Phase: Baseline Validation
-- Task: T-002
+- Phase: Findings Backlog
+- Task: T-003
 - Status: Ready for commit-push checkpoint
-- Last command: `npm run build`
-- Last result: Passed; `npm audit --audit-level=low` reported 28 dependency vulnerabilities for package cleanup triage
-- Last pushed commit: `42af02dfc68d6ae873402c2f7bbfcab3318233cd`
+- Last command: `npm outdated --json`
+- Last result: Reported patch/minor package drift; findings backlog written with 8 findings
+- Last pushed commit: `6db06bca53ff2573db1b579a9f22fd5a024962ef`
 - Branch sync: Local `dev` matches `origin/dev`
-- Working tree: Dirty with in-scope baseline validation report updates
-- Next action: Run quality gate, inspect diff, commit `test: document baseline validation`, dry-run push, push, fetch, and confirm sync
+- Working tree: Dirty with in-scope findings backlog report updates
+- Next action: Run quality gate, inspect diff, commit `chore: add codebase findings backlog`, dry-run push, push, fetch, and confirm sync
 
 ## Dirty File Classification
 
 | Path | Classification | Owner/Reason |
 | --- | --- | --- |
-| `agent-runs/2026-06-20-codebase-pass/02-baseline-validation.md` | Safe-to-commit | Baseline report |
+| `agent-runs/2026-06-20-codebase-pass/03-findings-backlog.md` | Safe-to-commit | Findings backlog report |
 | `agent-runs/2026-06-20-codebase-pass/run-state.md` | Safe-to-commit | Resume ledger update |
 | `agent-runs/2026-06-20-codebase-pass/task-queue.md` | Safe-to-commit | Queue status update |
 
@@ -43,6 +43,8 @@
 | `npm run lint` | Pass | Primary quality gate clean |
 | `npm audit --audit-level=low` | Findings | 28 vulnerabilities: 2 low, 16 moderate, 8 high, 2 critical |
 | `npm run build` | Pass | Next.js build and TypeScript pass completed |
+| `npm outdated --json` | Findings | Patch/minor updates available; some major updates deferred |
+| `npm ls sanitize-html protobufjs firebase-admin next mailparser --depth=4` | Findings | Identified direct/transitive vulnerable package locations |
 
 ## Blockers
 
@@ -50,5 +52,5 @@
 
 ## Deferred Items
 
-- Audit findings from `npm ci` are deferred to Package and Dead-Code Cleanup.
+- Audit findings and package drift are deferred to Package and Dead-Code Cleanup.
 - Product/security direction for Firestore-stored user API keys is deferred; this workflow will document the risk but not invent product behavior.
