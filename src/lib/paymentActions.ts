@@ -1,6 +1,7 @@
 "use server";
 
 import Stripe from "stripe";
+import { authenticateAction } from "@/utils/serverAuth";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -9,6 +10,7 @@ function getStripe() {
 }
 
 export async function createPaymentIntent(amount: number) {
+  await authenticateAction();
   const stripe = getStripe();
   const product = process.env.NEXT_PUBLIC_STRIPE_PRODUCT_NAME || "credits";
 
@@ -28,6 +30,7 @@ export async function createPaymentIntent(amount: number) {
 }
 
 export async function validatePaymentIntent(paymentIntentId: string) {
+  await authenticateAction();
   const stripe = getStripe();
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);

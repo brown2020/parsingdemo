@@ -1,0 +1,3 @@
+ParsingDemo fixture sample document.
+
+This text stands in for converted PDF/DOCX/EML content during CI.

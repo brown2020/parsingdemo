@@ -12,25 +12,25 @@ export default function TermsPage() {
       <p className="text-slate-500 mb-8">Last updated: February 2025</p>
 
       <div className="prose prose-slate max-w-none space-y-6">
-        <section>
-          <h2 className="text-xl font-semibold mb-3">1. Acceptance of Terms</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">1. Acceptance of Terms</h2>
+          <p className="text-slate-700 leading-relaxed">
             By accessing or using ParsingDemo (&quot;the Service&quot;), you agree to be bound by these
             Terms of Service. If you do not agree to these terms, please do not use the Service.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">2. Description of Service</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">2. Description of Service</h2>
+          <p className="text-slate-700 leading-relaxed">
             ParsingDemo provides document parsing and conversion services, allowing users to
             upload documents in various formats (PDF, DOCX, EML, MSG, images) and convert them
             to standardized formats. The Service also offers AI-powered document analysis features.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">3. User Accounts</h2>
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">3. User Accounts</h2>
           <ul className="list-disc pl-6 text-slate-600 space-y-2">
             <li>You must create an account to use certain features of the Service.</li>
             <li>You are responsible for maintaining the security of your account credentials.</li>
@@ -39,8 +39,8 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">4. Credits and Payments</h2>
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">4. Credits and Payments</h2>
           <ul className="list-disc pl-6 text-slate-600 space-y-2">
             <li>The Service operates on a credit-based system for certain features.</li>
             <li>Credits are purchased through our payment system powered by Stripe.</li>
@@ -49,8 +49,8 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">5. Acceptable Use</h2>
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">5. Acceptable Use</h2>
           <p className="text-slate-600 leading-relaxed mb-3">You agree not to:</p>
           <ul className="list-disc pl-6 text-slate-600 space-y-2">
             <li>Upload malicious files, viruses, or harmful content</li>
@@ -62,18 +62,18 @@ export default function TermsPage() {
           </ul>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">6. Intellectual Property</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">6. Intellectual Property</h2>
+          <p className="text-slate-700 leading-relaxed">
             You retain ownership of all documents you upload. By uploading content, you grant
             us a limited license to process your documents solely for the purpose of providing
             the Service. We do not claim ownership of your content.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">7. Disclaimer of Warranties</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">7. Disclaimer of Warranties</h2>
+          <p className="text-slate-700 leading-relaxed">
             THE SERVICE IS PROVIDED &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND. WE DO NOT
             GUARANTEE THAT THE SERVICE WILL BE ERROR-FREE, UNINTERRUPTED, OR MEET YOUR
             SPECIFIC REQUIREMENTS. DOCUMENT CONVERSIONS MAY NOT BE PERFECT AND SHOULD BE
@@ -81,44 +81,44 @@ export default function TermsPage() {
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">8. Limitation of Liability</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">8. Limitation of Liability</h2>
+          <p className="text-slate-700 leading-relaxed">
             TO THE MAXIMUM EXTENT PERMITTED BY LAW, WE SHALL NOT BE LIABLE FOR ANY INDIRECT,
             INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES ARISING FROM YOUR USE OF THE SERVICE,
             INCLUDING BUT NOT LIMITED TO LOSS OF DATA OR PROFITS.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">9. Termination</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">9. Termination</h2>
+          <p className="text-slate-700 leading-relaxed">
             We reserve the right to suspend or terminate your access to the Service at any time
             for violations of these Terms or for any other reason at our discretion. Upon
             termination, your right to use the Service will immediately cease.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">10. Changes to Terms</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">10. Changes to Terms</h2>
+          <p className="text-slate-700 leading-relaxed">
             We may modify these Terms at any time. Continued use of the Service after changes
             constitutes acceptance of the modified Terms. We will make reasonable efforts to
             notify users of significant changes.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">11. Governing Law</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">11. Governing Law</h2>
+          <p className="text-slate-700 leading-relaxed">
             These Terms shall be governed by and construed in accordance with applicable laws,
             without regard to conflict of law principles.
           </p>
         </section>
 
-        <section>
-          <h2 className="text-xl font-semibold mb-3">12. Contact</h2>
-          <p className="text-slate-600 leading-relaxed">
+        <section className="terms-block space-y-3">
+          <h2 className="text-xl font-semibold text-slate-900 mb-2">12. Contact</h2>
+          <p className="text-slate-700 leading-relaxed">
             For questions about these Terms, please contact us through our support channels.
           </p>
         </section>

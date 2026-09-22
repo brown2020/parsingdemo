@@ -1,22 +1,30 @@
 "use client";
 
-import { auth } from "@/firebase/firebaseClient";
+import { auth, hasClientConfig } from "@/firebase/firebaseClient";
 import { useAuthStore } from "@/zustand/useAuthStore";
+import { mapAuthError } from "@/utils/authErrors";
+import PasswordField from "@/components/PasswordField";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
+  getIdToken,
 } from "firebase/auth";
+import { setCookie } from "cookies-next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { ClipLoader } from "react-spinners";
+
+const COOKIE_NAME = process.env.NEXT_PUBLIC_COOKIE_NAME || "authToken";
 
 export default function SignUpPage() {
   const router = useRouter();
   const uid = useAuthStore((state) => state.uid);
   const authReady = useAuthStore((state) => state.authReady);
+  const setAuthDetails = useAuthStore((state) => state.setAuthDetails);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,65 +33,74 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Redirect if already signed in
-  useEffect(() => {
-    if (authReady && uid) {
-      router.push("/documents");
-    }
-  }, [authReady, uid, router]);
-
-  // Show loading while auth state is being determined
-  if (!authReady || uid) {
+  if (!authReady) {
     return (
       <div className="flex items-center justify-center py-12">
-        <ClipLoader size={40} color="#3b82f6" />
+        <ClipLoader size={40} color="#1d4ed8" />
       </div>
     );
   }
 
+  if (uid) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <p className="text-slate-700">You are already signed in.</p>
+        <Link href="/documents" className="btn-primary">
+          Go to documents
+        </Link>
+      </div>
+    );
+  }
+
+  const settleSession = async () => {
+    if (!auth?.currentUser) return;
+    const token = await getIdToken(auth.currentUser, true);
+    setCookie(COOKIE_NAME, token, {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+    const u = auth.currentUser;
+    setAuthDetails({
+      uid: u.uid,
+      firebaseUid: u.uid,
+      authEmail: u.email || "",
+      authDisplayName: u.displayName || "",
+      authPhotoUrl: u.photoURL || "",
+      authEmailVerified: u.emailVerified,
+      authReady: true,
+    });
+  };
+
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
+    if (!hasClientConfig) {
+      setError("Authentication is not configured.");
+      return;
+    }
     if (password !== confirmPassword) {
       setError("Passwords do not match");
       return;
     }
-
     if (password.length < 6) {
       setError("Password must be at least 6 characters");
       return;
     }
-
     setLoading(true);
-
     try {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-
-      // Update the user's display name
       if (name) {
-        await updateProfile(userCredential.user, {
-          displayName: name,
-        });
+        await updateProfile(userCredential.user, { displayName: name });
       }
-
-      router.push("/documents");
+      await settleSession();
+      router.replace("/documents");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Sign up failed";
-      // Clean up Firebase error messages
-      if (message.includes("auth/email-already-in-use")) {
-        setError("An account with this email already exists");
-      } else if (message.includes("auth/invalid-email")) {
-        setError("Invalid email address");
-      } else if (message.includes("auth/weak-password")) {
-        setError("Password is too weak");
-      } else {
-        setError(message);
-      }
+      setError(mapAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -91,19 +108,17 @@ export default function SignUpPage() {
 
   const handleGoogleSignUp = async () => {
     setError("");
+    if (!hasClientConfig) {
+      setError("Authentication is not configured.");
+      return;
+    }
     setLoading(true);
-
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push("/documents");
+      await signInWithPopup(auth, new GoogleAuthProvider());
+      await settleSession();
+      router.replace("/documents");
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Google sign up failed";
-      if (message.includes("auth/popup-closed-by-user")) {
-        setError("Sign up cancelled");
-      } else {
-        setError(message);
-      }
+      setError(mapAuthError(err));
     } finally {
       setLoading(false);
     }
@@ -113,11 +128,15 @@ export default function SignUpPage() {
     <div className="flex items-center justify-center py-12 px-4">
       <div className="card w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold">Create an account</h1>
-          <p className="text-slate-600 mt-2">Get started with 1,000 free credits</p>
+          <h1 className="text-2xl font-bold">Create account</h1>
+          <p className="text-slate-600 mt-2">Start parsing documents</p>
         </div>
 
-        {error && <div className="banner-error mb-4">{error}</div>}
+        {error && (
+          <div className="banner-error mb-4" role="alert">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleEmailSignUp} className="space-y-4">
           <div>
@@ -135,9 +154,9 @@ export default function SignUpPage() {
               className="input"
               placeholder="Your name"
               disabled={loading}
+              autoComplete="name"
             />
           </div>
-
           <div>
             <label
               htmlFor="email"
@@ -154,47 +173,25 @@ export default function SignUpPage() {
               placeholder="you@example.com"
               required
               disabled={loading}
+              autoComplete="email"
             />
           </div>
-
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="input"
-              placeholder="At least 6 characters"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-medium text-slate-700 mb-1"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="input"
-              placeholder="Confirm your password"
-              required
-              disabled={loading}
-            />
-          </div>
-
+          <PasswordField
+            id="password"
+            value={password}
+            onChange={setPassword}
+            disabled={loading}
+            autoComplete="new-password"
+          />
+          <PasswordField
+            id="confirm-password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            disabled={loading}
+            label="Confirm password"
+            autoComplete="new-password"
+            placeholder="Confirm your password"
+          />
           <button
             type="submit"
             className="btn-primary w-full"
@@ -203,49 +200,25 @@ export default function SignUpPage() {
             {loading ? (
               <ClipLoader size={20} color="#ffffff" />
             ) : (
-              "Create Account"
+              "Create account"
             )}
           </button>
         </form>
 
         <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
+            <div className="w-full border-t border-slate-200" />
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white text-slate-500">or</span>
           </div>
         </div>
 
-        <button
-          onClick={handleGoogleSignUp}
-          className="btn w-full border border-slate-300 bg-white hover:bg-slate-50"
-          disabled={loading}
-        >
-          <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
-            <path
-              fill="#4285F4"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="#34A853"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="#FBBC05"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            />
-            <path
-              fill="#EA4335"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            />
-          </svg>
-          Continue with Google
-        </button>
+        <GoogleAuthButton onClick={handleGoogleSignUp} disabled={loading} />
 
         <p className="text-center text-sm text-slate-600 mt-6">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-blue-600 hover:underline">
+          <Link href="/sign-in" className="text-blue-700 hover:underline">
             Sign in
           </Link>
         </p>

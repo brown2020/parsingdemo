@@ -71,15 +71,17 @@ const BrowseFiles: React.FC = () => {
   const handleUpload = async () => {
     if (selectedFiles.length > 0 && uid) {
       try {
-        for (const file of selectedFiles) {
-          const fileType = determineFileType(file); // Automatically determine the file type
-          await uploadFile(file, uid, group, fileType); // Pass the determined file type
-        }
+        await Promise.all(
+          selectedFiles.map((file) => {
+            const fileType = determineFileType(file);
+            return uploadFile(file, uid, group, fileType);
+          })
+        );
         setSelectedFiles([]);
         await handleFetchFiles();
       } catch (uploadError: unknown) {
         const typedError = uploadError as Error;
-        console.error(typedError);
+        console.warn(typedError);
         setError(typedError?.message || "Failed to upload file(s)");
       }
     }
@@ -112,9 +114,7 @@ const BrowseFiles: React.FC = () => {
     if (confirm("Are you sure you want to delete the selected files?")) {
       try {
         const fileIdsArray = Array.from(selectedFileIds);
-        for (const fileId of fileIdsArray) {
-          await deleteFile(uid, fileId);
-        }
+        await Promise.all(fileIdsArray.map((fileId) => deleteFile(uid, fileId)));
         setSelectedFileIds(new Set()); // Clear selected files
         await handleFetchFiles();
       } catch (deleteError: unknown) {
@@ -220,8 +220,11 @@ const BrowseFiles: React.FC = () => {
           {error && <div className="banner-error mt-4 mb-6">{error}</div>}
 
           <div className="flex items-center gap-3 mb-6 mt-4">
-            <label className="font-semibold">Default group</label>
+            <label htmlFor="default-group" className="font-semibold">
+              Default group
+            </label>
             <select
+              id="default-group"
               value={group}
               onChange={(e) => setGroup(e.target.value)}
               className="select"

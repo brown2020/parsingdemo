@@ -1,12 +1,13 @@
 import AuthGuard from "@/components/AuthGuard";
 import PaymentSuccessPage from "@/components/PaymentSuccessPage";
 
-export default function PaymentSuccess({
+export default async function PaymentSuccess({
   searchParams,
 }: {
-  searchParams?: { payment_intent?: string };
+  searchParams: Promise<{ payment_intent?: string }>;
 }) {
-  const payment_intent = searchParams?.payment_intent ?? "";
+  const params = await searchParams;
+  const payment_intent = params?.payment_intent ?? "";
   return (
     <AuthGuard>
       <PaymentSuccessPage payment_intent={payment_intent} />

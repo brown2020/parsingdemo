@@ -195,8 +195,10 @@ const prepareDocxFile = async (
   file: File,
   userId: string
 ): Promise<{ pdfBlob: Blob; textBlob: Blob }> => {
-  const pdfBlob = await convertDocxToPdf(file, userId);
-  const text = await convertDocxToText(file, userId);
+  const [pdfBlob, text] = await Promise.all([
+    convertDocxToPdf(file, userId),
+    convertDocxToText(file, userId),
+  ]);
   const textBlob = new Blob([text], { type: "text/plain" });
   return { pdfBlob, textBlob };
 };
@@ -215,8 +217,10 @@ const prepareEmlFile = async (
   file: File,
   userId: string
 ): Promise<{ pdfBlob: Blob; textBlob: Blob }> => {
-  const pdfBlob = await convertEmlToPdf(file, userId);
-  const text = await convertEmlToText(file, userId);
+  const [pdfBlob, text] = await Promise.all([
+    convertEmlToPdf(file, userId),
+    convertEmlToText(file, userId),
+  ]);
   const textBlob = new Blob([text], { type: "text/plain" });
   return { pdfBlob, textBlob };
 };
@@ -225,8 +229,10 @@ const prepareMsgFile = async (
   file: File,
   userId: string
 ): Promise<{ pdfBlob: Blob; textBlob: Blob }> => {
-  const pdfBlob = await convertMsgToPdf(file, userId);
-  const text = await convertMsgToText(file, userId);
+  const [pdfBlob, text] = await Promise.all([
+    convertMsgToPdf(file, userId),
+    convertMsgToText(file, userId),
+  ]);
   const textBlob = new Blob([text], { type: "text/plain" });
   return { pdfBlob, textBlob };
 };

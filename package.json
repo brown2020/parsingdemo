@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "doctor": "npx -y react-doctor@0.9.14 . --verbose --offline"
   },
   "dependencies": {
     "@ai-sdk/google": "^3.0.64",
@@ -57,6 +60,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "postcss": "^8.5.10",
     "tailwindcss": "^4.2.2",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^3.2.7"
   }
 }

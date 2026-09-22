@@ -1,5 +1,8 @@
 import admin from "firebase-admin";
 import { getApps } from "firebase-admin/app";
+import type { Firestore } from "firebase-admin/firestore";
+import type { Auth } from "firebase-admin/auth";
+import type { Bucket } from "@google-cloud/storage";
 
 const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
@@ -16,16 +19,37 @@ const adminCredentials = {
   clientCertsUrl: process.env.FIREBASE_CLIENT_CERTS_URL,
 };
 
-if (!getApps().length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(
-      adminCredentials as admin.ServiceAccount
-    ),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGEBUCKET,
-  });
+export const hasAdminConfig = Boolean(
+  adminCredentials.projectId &&
+    adminCredentials.clientEmail &&
+    adminCredentials.privateKey
+);
+
+let adminBucket: Bucket;
+let adminDb: Firestore;
+let adminAuth: Auth;
+
+try {
+  if (hasAdminConfig) {
+    if (!getApps().length) {
+      admin.initializeApp({
+        credential: admin.credential.cert(
+          adminCredentials as admin.ServiceAccount
+        ),
+        storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGEBUCKET,
+      });
+    }
+    adminBucket = admin.storage().bucket();
+    adminDb = admin.firestore();
+    adminAuth = admin.auth();
+  } else {
+    throw new Error("Firebase Admin credentials missing");
+  }
+} catch (e) {
+  console.warn("Firebase Admin initialization skipped (expected in CI/build):", e);
+  adminBucket = {} as Bucket;
+  adminDb = {} as Firestore;
+  adminAuth = {} as Auth;
 }
-const adminBucket = admin.storage().bucket();
-const adminDb = admin.firestore();
-const adminAuth = admin.auth();
 
 export { adminBucket, adminDb, adminAuth, admin };

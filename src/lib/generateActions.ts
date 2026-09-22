@@ -4,11 +4,31 @@ import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamText, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { PDFParse } from "pdf-parse";
+import { authenticateAction } from "@/utils/serverAuth";
 
 const FETCH_TIMEOUT_MS = 300_000; // 5 minutes
 const MAX_COMBINED_DOCUMENT_CHARS = 200_000;
 
+/** Prefer fixtures when PARSE_USE_FIXTURES=true — avoids burning Gemini credits. */
+function parseFixturesEnabled() {
+  return process.env.PARSE_USE_FIXTURES === "true";
+}
+
+function fixtureStream(chunks: string[]) {
+  const stream = createStreamableValue(chunks.join(""));
+  stream.done();
+  return stream.value;
+}
+
 export async function continueConversation(messages: ModelMessage[]) {
+  await authenticateAction();
+  if (parseFixturesEnabled()) {
+    return fixtureStream([
+      "[fixture] AI analysis skipped (PARSE_USE_FIXTURES=true). ",
+      "Live Gemini quality and latency are not proven by this fixture.",
+    ]);
+  }
+
   const result = streamText({
     model: google("gemini-2.5-flash"),
     messages,
@@ -45,26 +65,38 @@ async function extractTextFromPdf(pdfUrl: string) {
 }
 
 async function generateDocumentText(docs: string[]) {
-  // Extract text from all PDFs with headers
-  let extractedText = "";
-  for (let i = 0; i < docs.length; i++) {
-    const pdfUrl = docs[i];
-    try {
-      const pdfText = await extractTextFromPdf(pdfUrl);
-      extractedText += `\n\n--- Document ${i + 1} ---\n${pdfText}`;
-      if (extractedText.length > MAX_COMBINED_DOCUMENT_CHARS) {
-        extractedText = extractedText.slice(0, MAX_COMBINED_DOCUMENT_CHARS);
-        extractedText += "\n\n--- Truncated ---\n";
-        break;
+  const parts = await Promise.all(
+    docs.map(async (pdfUrl, i) => {
+      try {
+        const pdfText = await extractTextFromPdf(pdfUrl);
+        return `\n\n--- Document ${i + 1} ---\n${pdfText}`;
+      } catch (error) {
+        console.error(`Error extracting text from PDF at ${pdfUrl}:`, error);
+        return `\n\n--- Document ${i + 1} ---\n[extraction failed]`;
       }
-    } catch (error) {
-      console.error(`Error extracting text from PDF at ${pdfUrl}:`, error);
-    }
+    })
+  );
+
+  let extractedText = parts.join("");
+  if (extractedText.length > MAX_COMBINED_DOCUMENT_CHARS) {
+    extractedText =
+      extractedText.slice(0, MAX_COMBINED_DOCUMENT_CHARS) +
+      "\n\n--- Truncated ---\n";
   }
   return extractedText;
 }
 
 export async function analyzeDocuments(docs: string[], prompt: string) {
+  await authenticateAction();
+
+  if (parseFixturesEnabled()) {
+    return fixtureStream([
+      `[fixture] Would analyze ${docs.length} document(s). `,
+      `Prompt length: ${prompt.length}. `,
+      "Live Gemini parse quality is not proven by this fixture.",
+    ]);
+  }
+
   const extractedText = await generateDocumentText(docs);
   const finalPrompt = `prompt: ${prompt}\ndocument: ${extractedText}\n\nReturn plain text only. Do not use markdown or any other formatting.`;
 

@@ -53,3 +53,11 @@ Node.js 20.9.0 or newer is expected by the Next.js 16 stack.
 - `npm ci` reported 28 audit findings: 2 low, 16 moderate, 8 high, and
   2 critical. Package cleanup should inspect these with `npm audit` before
   applying fixes.
+
+
+## CI and secrets
+
+- GitHub Actions gate jobs must **tolerate missing** `${{ secrets.* }}` client env.
+- Never inline `NEXT_PUBLIC_*` / API keys in `.github/workflows/*` — `${{ secrets.* }}` only when a job truly needs them.
+- Firebase client/admin and Stripe client init are deferred/soft-skipped so SSG/build survives empty secrets.
+- Prefer `PARSE_USE_FIXTURES=true` in CI to avoid burning Gemini/parse credits; fixtures cannot prove live model quality.
