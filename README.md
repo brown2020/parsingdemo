@@ -14,7 +14,7 @@ Verified from the current codebase:
 - Conversion API routes: PDF→text, DOCX→PDF/text, EML→PDF/text, MSG→PDF/text, image→PDF (incl. HEIC via `heic2any`)
 - AI analysis server actions (`src/lib/generateActions.ts`) using Vercel AI SDK + `@ai-sdk/google` (`gemini-2.5-flash`); combined text capped at 200,000 characters
 - `PARSE_USE_FIXTURES=true` skips live Gemini calls (used in CI)
-- Stripe PaymentIntents for credits (`/payments`, `/payment-attempt`, `/payment-success`)
+- Stripe PaymentIntents for a fixed credit pack (`/payments`, `/payment-attempt`, `/payment-success`); credits are applied by the signed webhook, not the browser
 - Profile/account pages; Zustand stores for auth, profile, payments
 - Firestore + Storage security rules in-repo; malware IOC scan workflow alongside CI
 
@@ -123,21 +123,23 @@ Naming matches the code (`APIKEY`, `AUTHDOMAIN`, … — no underscores between 
 | --- | --- | --- |
 | `NEXT_PUBLIC_STRIPE_KEY` | Publishable key for Elements / checkout UI | Stripe Dashboard → Developers → API keys |
 | `STRIPE_SECRET_KEY` | Server secret for PaymentIntents | Same |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/stripe/webhook`. Credit packs are granted only after `payment_intent.succeeded` verifies this signature, the fixed $99.99 amount, `usd`, and the signed-in user. Checkout is disabled and no credits are granted when this is unset. | Stripe Dashboard → Developers → Webhooks → endpoint signing secret |
 | `NEXT_PUBLIC_STRIPE_PRODUCT_NAME` | Metadata/description label (default `credits`) | Your choice / product naming |
 
 #### Other
 
 | Name | Purpose | Where to get it |
 | --- | --- | --- |
-| `NEXT_PUBLIC_COOKIE_NAME` | Optional auth cookie name (default `authToken`) | Set locally if you need a custom name |
+| `NEXT_PUBLIC_COOKIE_NAME` | Optional auth cookie name (default `authToken`). The value is an httpOnly Firebase session cookie set by `POST /api/session`, not a readable ID token. | Set locally if you need a custom name |
 | `PARSE_USE_FIXTURES` | When `true`, AI actions return fixture text (CI/local without Gemini spend) | Set to `true` or omit |
 
 ### Firebase / Stripe setup
 
 1. Enable Email/Password and Google Auth; add authorized domains.
-2. Deploy `firestore.rules` and `storage.rules`.
-3. Apply Storage CORS if browser uploads fail from your origin (`cors.json` if present).
-4. Create Stripe products/prices as needed; wire publishable + secret keys.
+2. Deploy `firestore.rules` and `storage.rules` from this repo (the app does not deploy them). Profile balances and payment records are Admin SDK writes; client updates cannot change `credits`.
+3. Apply Storage CORS if browser uploads fail from your origin (`cors.json`). The committed file allows `http://localhost:3000` only. Add your production origin before applying it to the bucket. Do not use `*`.
+4. In Stripe, add a webhook endpoint pointing at `https://<your-host>/api/stripe/webhook` for `payment_intent.succeeded`, and set `STRIPE_WEBHOOK_SECRET`. Without that secret the app will not start checkout.
+5. Conversion uploads are limited to 4MB so they fit Vercel's request-body cap. On Vercel, PDF routes launch `@sparticuz/chromium` instead of a local Chrome. `maxDuration` is 300 seconds and needs a plan that allows it.
 
 ### Run locally
 
