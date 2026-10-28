@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       page.setDefaultNavigationTimeout(300000);
       page.setDefaultTimeout(300000);
 
-      await page.setContent(html, { waitUntil: "networkidle0" });
+      await page.setContent(html, { waitUntil: "load" });
 
       // Generate PDF
       const pdfBuffer = await page.pdf({
