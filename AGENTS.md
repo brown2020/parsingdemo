@@ -48,11 +48,14 @@ Node.js 20.9.0 or newer is expected by the Next.js 16 stack.
 
 ## Current Validation Baseline
 
-- `npm ci` completed successfully from the lockfile on 2026-06-20.
-- `npm run lint` passes after dependencies are installed.
-- `npm ci` reported 28 audit findings: 2 low, 16 moderate, 8 high, and
-  2 critical. Package cleanup should inspect these with `npm audit` before
-  applying fixes.
+- `npm ci` from this lockfile is the install path. `npm audit` reported 0
+  vulnerabilities on 2026-10-28.
+- `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` are the
+  required gates. CI runs them on Node 22 without secrets.
+- TypeScript stays on 6.0.x until `@typescript-eslint/parser` accepts 7.x
+  (current peer range is `typescript <6.1.0`).
+- Keep the `jwks-rsa` → `jose@5.10.0` override while `firebase-admin` 14
+  depends on `jwks-rsa` 4.
 
 
 ## CI and secrets

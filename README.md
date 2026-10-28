@@ -1,37 +1,42 @@
 # ParsingDemo
 
-Upload documents, convert them to PDF/text, organize files, and send selected document text to Google Gemini for analysis. Includes Firebase auth, Storage/Firestore persistence, and Stripe credit purchases.
+Upload documents, convert them to PDF and text, organize the results, and send selected PDF text to Google Gemini for analysis. Accounts, file metadata, and credit balances live in Firebase. Credit packs are sold through Stripe and applied only by a signed webhook.
 
-There is no `homepageUrl` set on the GitHub repository; deploy your own Next.js instance after configuring env vars.
+Deploy your own Next.js instance. This repository does not set a GitHub homepage URL.
 
 ## Features
 
-Verified from the current codebase:
-
-- Public pages: home, about, privacy, terms; auth pages: sign-in, sign-up, forgot-password
-- Email/password and Google sign-in (Firebase Auth); session cookie for route gating (`src/proxy.ts`)
-- Authenticated documents UI with upload (dropzone), grouping (`groupOne` / `groupTwo`), and drag-and-drop selection
-- Conversion API routes: PDF→text, DOCX→PDF/text, EML→PDF/text, MSG→PDF/text, image→PDF (incl. HEIC via `heic2any`)
-- AI analysis server actions (`src/lib/generateActions.ts`) using Vercel AI SDK + `@ai-sdk/google` (`gemini-2.5-flash`); combined text capped at 200,000 characters
-- `PARSE_USE_FIXTURES=true` skips live Gemini calls (used in CI)
-- Stripe PaymentIntents for a fixed credit pack (`/payments`, `/payment-attempt`, `/payment-success`); credits are applied by the signed webhook, not the browser
-- Profile/account pages; Zustand stores for auth, profile, payments
-- Firestore + Storage security rules in-repo; malware IOC scan workflow alongside CI
+- Public pages: home, about, privacy, and terms
+- Auth pages: sign-in, sign-up, and forgot-password (email/password and Google)
+- httpOnly Firebase session cookie from `POST /api/session`, cleared by `DELETE /api/session`
+- Route gate in `src/proxy.ts` (cookie presence). Server Actions and conversion routes verify the session cookie with Firebase Admin
+- Documents UI: dropzone upload, `groupOne` / `groupTwo`, drag-and-drop selection
+- Conversion routes: PDF to text, DOCX to PDF/text, EML to PDF/text, MSG to PDF/text, images (including HEIC) to PDF
+- Analysis server action using the Vercel AI SDK and `@ai-sdk/google` (`gemini-2.5-flash`). Combined extracted text is capped at 200,000 characters. Up to 10 PDFs, each at most 4MB, and only the signed-in user's Firebase Storage PDFs
+- `PARSE_USE_FIXTURES=true` skips live Gemini calls
+- Stripe PaymentIntent for one fixed pack: 9999 cents, `usd`, 10,000 credits. New profiles start at 1,000 credits. Analysis costs 1 credit
+- Credits change only through the Admin SDK (webhook fulfillment and analysis charge/refund). Checkout stays off when `STRIPE_WEBHOOK_SECRET` or Admin credentials are missing
+- Profile page for identity fields. Clients cannot write `credits`
 
 ## Tech stack
 
-| Area | Choice | Version (package.json) |
-| --- | --- | --- |
-| Framework | Next.js (App Router) | ^16.2.4 |
-| UI | React | ^19.2.5 |
-| Language | TypeScript | ^6.0.3 |
-| Styling | Tailwind CSS | ^4.2.2 |
-| State | Zustand | ^5.0.12 |
-| Auth / data | Firebase client + firebase-admin | ^12.12.0 / ^13.8.0 |
-| AI | `ai`, `@ai-sdk/google`, `@ai-sdk/rsc` | ai ^6.0.168 |
-| Payments | Stripe + `@stripe/react-stripe-js` | stripe ^22.0.2 |
-| Parsing | pdf-parse, pdf-lib, mammoth, mailparser, html-to-text, sanitize-html, puppeteer, heic2any | — |
-| Tests | Vitest | ^3.2.7 |
+Versions are the ranges in `package.json`.
+
+| Area | Packages |
+| --- | --- |
+| Framework | Next.js `^16.4.3`, React `^19.3.1`, React DOM `^19.3.1` |
+| Language | TypeScript `^6.0.3` (TypeScript 7 is published; ESLint's parser does not accept it yet) |
+| Styling | Tailwind CSS `^4.3.3`, `@tailwindcss/postcss` `^4.3.3` |
+| State | Zustand `^5.0.16` |
+| Auth and data | `firebase` `^13.1.0`, `firebase-admin` `^14.5.0` |
+| AI | `ai` `^7.0.156`, `@ai-sdk/google` `^4.0.107`, `@ai-sdk/rsc` `^3.0.156` |
+| Payments | `stripe` `^23.0.1`, `@stripe/stripe-js` `^10.2.0`, `@stripe/react-stripe-js` `^7.0.1` |
+| Parsing and PDF | `pdf-parse` `^2.4.5`, `pdf-lib` `^1.17.1`, `mammoth` `^1.13.0`, `mailparser` `^3.12.4`, `@kenjiuno/msgreader` `^1.29.0`, `sanitize-html` `^2.18.1`, `puppeteer` `^25.16.0`, `@sparticuz/chromium` `^153.0.0`, `heic2any` `^0.0.4` |
+| Validation | `zod` `^4.6.7` |
+| Tests | Vitest `^5.0.5`, Vite `^8.3.5` |
+| Lint | ESLint `^10.13.0`, `typescript-eslint` `^8.72.1` |
+
+`firebase-admin` 14 pulls `jwks-rsa` 4. `package.json` overrides that package's `jose` dependency to `5.10.0`. `@grpc/grpc-js` is overridden to `1.14.6` (the current release).
 
 ## Project structure
 
@@ -41,115 +46,98 @@ src/
     page.tsx, about/, privacy/, terms/
     sign-in/, sign-up/, forgot-password/, account/
     documents/, payments/, payment-attempt/, payment-success/
-    api/convert*/route.ts   # format conversion handlers
-  components/               # Upload, file lists, auth, payments, layout
-  firebase/                 # firebaseClient.ts, firebaseAdmin.ts
-  lib/                      # generateActions, paymentActions
-  zustand/                  # auth, profile, payments stores
-  utils/                    # convertUtils, fileUtils, serverAuth, …
+    api/convert*/route.ts
+    api/session/route.ts
+    api/stripe/webhook/route.ts
+  components/
+  firebase/          firebaseClient.ts, firebaseAdmin.ts
+  lib/               generateActions, billing, paymentActions, profileActions
+  zustand/
+  utils/
   proxy.ts
 firestore.rules
 storage.rules
+cors.json
 .env.example
-fixtures/                   # Sample inputs for PARSE_USE_FIXTURES
+fixtures/
 .github/workflows/ci.yml
 .github/workflows/malware-scan.yml
+spec.md
+roadmap.md
 ```
 
 ## Getting started
 
 ### Prerequisites
 
-- Node.js 22 (matches CI) or a current LTS
+- Node.js 22 (the version CI uses). Next.js 16 requires Node `>=20.9.0`. Nested `@firebase/*` packages declare `engines.node >= 24.12.0` and npm prints `EBADENGINE` on Node 22; the app still installs and builds here. See `roadmap.md` before moving the runtime
 - npm
-- Firebase project (Auth, Firestore, Storage) and a service account for Admin
-- Google AI (Gemini) API key for live analysis
-- Stripe account for payments (optional for local parsing-only experiments)
+- A Firebase project with Auth, Firestore, and Storage, plus a service account for Admin
+- A Google AI key for live analysis
+- A Stripe account if you want checkout
 
-### Clone and install
+### Install
 
 ```bash
 git clone https://github.com/brown2020/parsingdemo.git
 cd parsingdemo
-npm install
+npm ci
 ```
 
 ### Environment variables
 
-Copy `.env.example` to `.env.local` and fill in placeholders. **Never commit real values.**
+Copy `.env.example` to `.env.local` and replace the placeholders. Do not commit `.env.local`. Names only; never put real values in git.
 
-#### Firebase Admin (server)
+The production build and CI succeed when these are unset. Firebase and Stripe init are skipped, checkout is disabled, and the webhook returns 503.
 
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `FIREBASE_TYPE` | Service account type (usually `service_account`) | Firebase Console → Project settings → Service accounts → Generate new private key |
-| `FIREBASE_PROJECT_ID` | GCP/Firebase project id | Same JSON |
-| `FIREBASE_PRIVATE_KEY_ID` | Key id | Same |
-| `FIREBASE_PRIVATE_KEY` | PEM private key (escape newlines as `\n` in env files) | Same |
-| `FIREBASE_CLIENT_EMAIL` | Service account email | Same |
-| `FIREBASE_CLIENT_ID` | Client id | Same |
-| `FIREBASE_AUTH_URI` | OAuth auth URI | Same (default Google endpoint) |
-| `FIREBASE_TOKEN_URI` | Token URI | Same |
-| `FIREBASE_AUTH_PROVIDER_X509_CERT_URL` | Cert URL | Same |
-| `FIREBASE_CLIENT_CERTS_URL` | Client cert URL | Same |
+#### Required for a working local app
 
-`FIREBASE_UNIVERSE_DOMAIN` appears in `.env.example` but is not read by `firebaseAdmin.ts` today.
+| Name | Role |
+| --- | --- |
+| `FIREBASE_PROJECT_ID` | Admin project id. With the email and private key, this enables Admin |
+| `FIREBASE_CLIENT_EMAIL` | Service account email |
+| `FIREBASE_PRIVATE_KEY` | Service account private key. Keep newline escapes as `\n` in env files |
+| `NEXT_PUBLIC_FIREBASE_APIKEY` | Web API key. Client SDK init waits until this is set |
+| `NEXT_PUBLIC_FIREBASE_AUTHDOMAIN` | Auth domain |
+| `NEXT_PUBLIC_FIREBASE_PROJECTID` | Web project id |
+| `NEXT_PUBLIC_FIREBASE_STORAGEBUCKET` | Storage bucket. Also the allowlist for analysis PDF URLs and the Admin bucket |
+| `NEXT_PUBLIC_FIREBASE_MESSAGINGSENDERID` | Messaging sender id |
+| `NEXT_PUBLIC_FIREBASE_APPID` | Web app id |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Key read by `@ai-sdk/google` for `gemini-2.5-flash` |
+| `NEXT_PUBLIC_STRIPE_KEY` | Publishable key for Payment Element |
+| `STRIPE_SECRET_KEY` | Secret key for PaymentIntents and webhook verification |
+| `STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/stripe/webhook`. Checkout and credit grants stay off when this is empty |
 
-#### Firebase client (public)
+`FIREBASE_TYPE`, `FIREBASE_PRIVATE_KEY_ID`, `FIREBASE_CLIENT_ID`, `FIREBASE_AUTH_URI`, `FIREBASE_TOKEN_URI`, `FIREBASE_AUTH_PROVIDER_X509_CERT_URL`, and `FIREBASE_CLIENT_CERTS_URL` are forwarded into the Admin credential when set. A Firebase service-account JSON contains them.
 
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `NEXT_PUBLIC_FIREBASE_APIKEY` | Web API key | Firebase Console → Your apps |
-| `NEXT_PUBLIC_FIREBASE_AUTHDOMAIN` | Auth domain | Same |
-| `NEXT_PUBLIC_FIREBASE_PROJECTID` | Project id | Same |
-| `NEXT_PUBLIC_FIREBASE_STORAGEBUCKET` | Storage bucket | Same |
-| `NEXT_PUBLIC_FIREBASE_MESSAGINGSENDERID` | Messaging sender id | Same |
-| `NEXT_PUBLIC_FIREBASE_APPID` | App id | Same |
-| `NEXT_PUBLIC_FIREBASE_MEASUREMENTID` | Analytics measurement id (optional) | Same |
+#### Optional
 
-Naming matches the code (`APIKEY`, `AUTHDOMAIN`, … — no underscores between words after `FIREBASE_`).
+| Name | Role |
+| --- | --- |
+| `NEXT_PUBLIC_FIREBASE_MEASUREMENTID` | Analytics measurement id. Omitted from client init when empty |
+| `NEXT_PUBLIC_STRIPE_PRODUCT_NAME` | PaymentIntent metadata label. Defaults to `credits` |
+| `NEXT_PUBLIC_COOKIE_NAME` | Session cookie name. Defaults to `authToken` |
+| `PARSE_USE_FIXTURES` | `true` returns fixture analysis text and does not call Gemini |
 
-#### AI
+#### Present in `.env.example` but not read
 
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Used by `@ai-sdk/google` for `gemini-2.5-flash` in `generateActions.ts` | [Google AI Studio](https://aistudio.google.com/apikey) |
+`FIREBASE_UNIVERSE_DOMAIN`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `MISTRAL_API_KEY`, `OPENAI_API_KEY`.
 
-`.env.example` also lists `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `MISTRAL_API_KEY`, and `OPENAI_API_KEY`; they are **not referenced** in `src/` today.
+### Firebase and Stripe setup
 
-#### Stripe
+1. Enable Email/Password and Google sign-in. Add your authorized domains.
+2. Deploy `firestore.rules` and `storage.rules` yourself. This repo does not deploy them. There is no `firestore.indexes.json`.
+3. Apply `cors.json` to the Storage bucket if browser uploads fail. The committed file allows `http://localhost:3000` only. Add the production origin before applying it. Do not use `*`.
+4. Point a Stripe webhook at `https://<your-host>/api/stripe/webhook` for `payment_intent.succeeded`, and set `STRIPE_WEBHOOK_SECRET`.
+5. Conversion uploads are capped at 4MB. On Vercel, HTML-to-PDF uses `@sparticuz/chromium`. Conversion routes set `maxDuration` to 300 seconds.
 
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `NEXT_PUBLIC_STRIPE_KEY` | Publishable key for Elements / checkout UI | Stripe Dashboard → Developers → API keys |
-| `STRIPE_SECRET_KEY` | Server secret for PaymentIntents | Same |
-| `STRIPE_WEBHOOK_SECRET` | Signing secret for `POST /api/stripe/webhook`. Credit packs are granted only after `payment_intent.succeeded` verifies this signature, the fixed $99.99 amount, `usd`, and the signed-in user. Checkout is disabled and no credits are granted when this is unset. | Stripe Dashboard → Developers → Webhooks → endpoint signing secret |
-| `NEXT_PUBLIC_STRIPE_PRODUCT_NAME` | Metadata/description label (default `credits`) | Your choice / product naming |
-
-#### Other
-
-| Name | Purpose | Where to get it |
-| --- | --- | --- |
-| `NEXT_PUBLIC_COOKIE_NAME` | Optional auth cookie name (default `authToken`). The value is an httpOnly Firebase session cookie set by `POST /api/session`, not a readable ID token. | Set locally if you need a custom name |
-| `PARSE_USE_FIXTURES` | When `true`, AI actions return fixture text (CI/local without Gemini spend) | Set to `true` or omit |
-
-### Firebase / Stripe setup
-
-1. Enable Email/Password and Google Auth; add authorized domains.
-2. Deploy `firestore.rules` and `storage.rules` from this repo (the app does not deploy them). Profile balances and payment records are Admin SDK writes; client updates cannot change `credits`.
-3. Apply Storage CORS if browser uploads fail from your origin (`cors.json`). The committed file allows `http://localhost:3000` only. Add your production origin before applying it to the bucket. Do not use `*`.
-4. In Stripe, add a webhook endpoint pointing at `https://<your-host>/api/stripe/webhook` for `payment_intent.succeeded`, and set `STRIPE_WEBHOOK_SECRET`. Without that secret the app will not start checkout.
-5. Conversion uploads are limited to 4MB so they fit Vercel's request-body cap. On Vercel, PDF routes launch `@sparticuz/chromium` instead of a local Chrome. `maxDuration` is 300 seconds and needs a plan that allows it.
-
-### Run locally
+### Run
 
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000).
-
-For CI-like AI behavior without calling Gemini:
 
 ```bash
 PARSE_USE_FIXTURES=true npm run dev
@@ -165,24 +153,28 @@ PARSE_USE_FIXTURES=true npm run dev
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Vitest |
-| `npm run doctor` | `react-doctor` (offline pin in package.json) |
+| `npm run doctor` | `react-doctor` 0.9.18, offline |
 
 ## Testing and CI
 
-- Unit tests cover auth constants/errors, currency helper, and parse fixtures (`PARSE_USE_FIXTURES=true` in CI).
-- CI (`.github/workflows/ci.yml`): `npm ci --ignore-scripts`, lint, typecheck, test, doctor, build (Node 22). Soft-skips missing Firebase/Stripe secrets via deferred init.
-- Separate `malware-scan.yml` runs static IOC matching via `scripts/malware-scan.sh`.
+Unit tests cover session path rules, auth errors, the credit-pack amount check, PDF URL allowlisting, HTML sanitization, webhook rejection when the signing secret is missing, and parse fixtures.
+
+`.github/workflows/ci.yml` runs on pushes and pull requests to `dev` and `main`: `npm ci --ignore-scripts`, lint, typecheck, test, react-doctor, and the production build. Node 22. `PARSE_USE_FIXTURES=true`. No Actions secrets are required.
+
+`.github/workflows/malware-scan.yml` runs `scripts/malware-scan.sh` (static IOC match only).
 
 ## Deployment
 
-Deploy as a Next.js app. Configure all required env vars on the host. Do not inline secrets in workflows — use platform secret stores only.
+Deploy as a Next.js app and set the env var names above in the host's secret store. Do not put keys in workflow files.
+
+Firestore rules, Storage rules, and bucket CORS are not applied by CI. Apply them from this repo when you are ready.
 
 ## Contributing
 
 1. Branch from `dev`.
-2. Prefer fixtures for AI in automated runs.
-3. Run lint, typecheck, and tests before opening a PR.
-4. Never commit `.env.local` or real keys.
+2. Use `PARSE_USE_FIXTURES=true` for automated AI runs.
+3. Run lint, typecheck, tests, and the production build before opening a PR.
+4. Do not commit `.env`, `.env.local`, or `service_key.json`.
 
 ## License
 
