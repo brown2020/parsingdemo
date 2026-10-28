@@ -36,6 +36,11 @@ function authCode(error: unknown): string | null {
  * Map Firebase Auth codes to short UI messages.
  * Log the code at warn — never console.error(Error) (Next overlays).
  */
+/** Password reset must not reveal whether an email is registered. */
+export function passwordResetShowsSuccess(error: unknown): boolean {
+  return authCode(error) === "auth/user-not-found";
+}
+
 export function mapAuthError(error: unknown): string {
   const code = authCode(error);
   if (code) {

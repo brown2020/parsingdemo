@@ -8,7 +8,6 @@ import {
 
 import { useEffect, useState } from "react";
 import { createPaymentIntent } from "@/lib/paymentActions";
-import convertToSubcurrency from "@/utils/convertToSubcurrency";
 import { ClipLoader } from "react-spinners";
 
 type Props = { amount: number };
@@ -24,7 +23,7 @@ export default function PaymentCheckoutPage({ amount }: Props) {
     let ignore = false;
     async function initializePayment() {
       try {
-        const secret = await createPaymentIntent(convertToSubcurrency(amount));
+        const secret = await createPaymentIntent();
         if (ignore) return;
         if (secret) setClientSecret(secret);
       } catch (error) {
@@ -60,7 +59,7 @@ export default function PaymentCheckoutPage({ amount }: Props) {
         elements,
         clientSecret,
         confirmParams: {
-          return_url: `${window.location.origin}/payment-success?amount=${amount}`,
+          return_url: `${window.location.origin}/payment-success`,
         },
       });
 

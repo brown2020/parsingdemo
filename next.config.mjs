@@ -24,7 +24,12 @@ const nextConfig = {
     ],
   },
 
-  serverExternalPackages: ["pdf-parse"],
+  serverExternalPackages: [
+    "pdf-parse",
+    "puppeteer",
+    "@sparticuz/chromium",
+    "@kenjiuno/msgreader",
+  ],
 };
 
 export default nextConfig;

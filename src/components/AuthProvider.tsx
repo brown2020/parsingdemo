@@ -2,11 +2,9 @@
 
 import { auth, hasClientConfig } from "@/firebase/firebaseClient";
 import { useAuthStore } from "@/zustand/useAuthStore";
-import { getIdToken, onAuthStateChanged } from "firebase/auth";
-import { deleteCookie, setCookie } from "cookies-next";
+import { onIdTokenChanged } from "firebase/auth";
+import { clearPublishedSession, mintSession, resetSessionMint } from "@/utils/clientSession";
 import { useEffect } from "react";
-
-const COOKIE_NAME = process.env.NEXT_PUBLIC_COOKIE_NAME || "authToken";
 
 type Props = {
   children: React.ReactNode;
@@ -23,18 +21,13 @@ export default function AuthProvider({ children }: Props) {
       return;
     }
 
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onIdTokenChanged(auth, (user) => {
       void (async () => {
         if (user) {
           try {
-            const token = await getIdToken(user);
-            setCookie(COOKIE_NAME, token, {
-              secure: process.env.NODE_ENV === "production",
-              sameSite: "lax",
-              path: "/",
-            });
-          } catch {
-            deleteCookie(COOKIE_NAME, { path: "/" });
+            await mintSession(user);
+          } catch (error) {
+            console.warn("Session refresh failed", error);
           }
           setAuthDetails({
             uid: user.uid,
@@ -46,8 +39,12 @@ export default function AuthProvider({ children }: Props) {
             authReady: true,
           });
         } else {
-          deleteCookie(COOKIE_NAME, { path: "/" });
-          deleteCookie("__session", { path: "/" });
+          resetSessionMint();
+          try {
+            await clearPublishedSession();
+          } catch (error) {
+            console.warn("Session clear failed", error);
+          }
           clearAuthDetails();
           setAuthDetails({ authReady: true });
         }

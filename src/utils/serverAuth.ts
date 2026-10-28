@@ -1,6 +1,6 @@
 /**
  * Server-side authentication for Server Actions and Route Handlers.
- * Verifies the Firebase ID token from the auth cookie.
+ * Verifies the Firebase session cookie (httpOnly, minted by /api/session).
  */
 
 import { cookies } from "next/headers";
@@ -34,7 +34,7 @@ export async function authenticateAction(): Promise<string> {
   }
 
   try {
-    const decoded = await adminAuth.verifyIdToken(token);
+    const decoded = await adminAuth.verifySessionCookie(token, true);
     return decoded.uid;
   } catch {
     throw new AuthenticationError(

@@ -4,7 +4,7 @@ import { auth, hasClientConfig } from "@/firebase/firebaseClient";
 import { useAuthStore } from "@/zustand/useAuthStore";
 import { useInitializeStores } from "@/zustand/useInitializeStores";
 import { signOut } from "firebase/auth";
-import { deleteCookie } from "cookies-next";
+import { clearPublishedSession } from "@/utils/clientSession";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,8 +22,7 @@ export default function Header() {
 
   const handleSignOut = async () => {
     try {
-      deleteCookie("authToken", { path: "/" });
-      deleteCookie("__session", { path: "/" });
+      await clearPublishedSession();
       if (hasClientConfig && auth) {
         await signOut(auth);
       }

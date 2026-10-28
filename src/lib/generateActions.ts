@@ -5,8 +5,15 @@ import { streamText, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
 import { PDFParse } from "pdf-parse";
 import { authenticateAction } from "@/utils/serverAuth";
+import { assertUserStoragePdfUrl } from "@/utils/storageUrl";
+import {
+  ANALYSIS_CREDIT_COST,
+  MAX_ANALYSIS_DOCUMENTS,
+  MAX_ANALYSIS_PDF_BYTES,
+} from "@/utils/creditPack";
+import { chargeCredits, refundCredits } from "@/lib/billing";
 
-const FETCH_TIMEOUT_MS = 300_000; // 5 minutes
+const FETCH_TIMEOUT_MS = 60_000;
 const MAX_COMBINED_DOCUMENT_CHARS = 200_000;
 
 /** Prefer fixtures when PARSE_USE_FIXTURES=true — avoids burning Gemini credits. */
@@ -21,7 +28,7 @@ function fixtureStream(chunks: string[]) {
 }
 
 export async function continueConversation(messages: ModelMessage[]) {
-  await authenticateAction();
+  const uid = await authenticateAction();
   if (parseFixturesEnabled()) {
     return fixtureStream([
       "[fixture] AI analysis skipped (PARSE_USE_FIXTURES=true). ",
@@ -29,49 +36,83 @@ export async function continueConversation(messages: ModelMessage[]) {
     ]);
   }
 
-  const result = streamText({
-    model: google("gemini-2.5-flash"),
-    messages,
-  });
+  await chargeCredits(uid, ANALYSIS_CREDIT_COST);
+  try {
+    const result = streamText({
+      model: google("gemini-2.5-flash"),
+      messages,
+    });
 
-  const stream = createStreamableValue(result.textStream);
-  return stream.value;
+    const stream = createStreamableValue(result.textStream);
+    return stream.value;
+  } catch (error) {
+    await refundCredits(uid, ANALYSIS_CREDIT_COST).catch((refundError) => {
+      console.error("Credit refund failed", refundError);
+    });
+    throw error;
+  }
 }
 
-async function fetchArrayBufferWithTimeout(url: string) {
+async function readBoundedPdf(url: URL) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { signal: controller.signal });
-    if (!res.ok) {
-      throw new Error(`Failed to fetch PDF (${res.status})`);
+    const res = await fetch(url, {
+      redirect: "manual",
+      signal: controller.signal,
+    });
+    if (res.status >= 300 && res.status < 400) {
+      throw new Error("Document URL was rejected");
     }
-    return await res.arrayBuffer();
+    if (!res.ok || !res.body) {
+      throw new Error("Failed to fetch PDF");
+    }
+
+    const reader = res.body.getReader();
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value) continue;
+      total += value.byteLength;
+      if (total > MAX_ANALYSIS_PDF_BYTES) {
+        throw new Error("Document is too large");
+      }
+      chunks.push(value);
+    }
+
+    const buffer = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      buffer.set(chunk, offset);
+      offset += chunk.byteLength;
+    }
+    return buffer;
   } finally {
     clearTimeout(timeout);
   }
 }
 
-async function extractTextFromPdf(pdfUrl: string) {
+async function extractTextFromPdf(pdfUrl: URL) {
+  const dataBuffer = await readBoundedPdf(pdfUrl);
+  const parser = new PDFParse({ data: dataBuffer });
   try {
-    const dataBuffer = await fetchArrayBufferWithTimeout(pdfUrl);
-    const parser = new PDFParse({ data: dataBuffer });
     const data = await parser.getText();
     return data.text;
-  } catch (error) {
-    console.error("Error downloading or parsing PDF:", pdfUrl, error);
-    throw error;
+  } finally {
+    await parser.destroy().catch(() => undefined);
   }
 }
 
-async function generateDocumentText(docs: string[]) {
+async function generateDocumentText(docs: URL[]) {
   const parts = await Promise.all(
     docs.map(async (pdfUrl, i) => {
       try {
         const pdfText = await extractTextFromPdf(pdfUrl);
         return `\n\n--- Document ${i + 1} ---\n${pdfText}`;
       } catch (error) {
-        console.error(`Error extracting text from PDF at ${pdfUrl}:`, error);
+        console.error("Error extracting text from a selected PDF", error);
         return `\n\n--- Document ${i + 1} ---\n[extraction failed]`;
       }
     })
@@ -87,7 +128,7 @@ async function generateDocumentText(docs: string[]) {
 }
 
 export async function analyzeDocuments(docs: string[], prompt: string) {
-  await authenticateAction();
+  const uid = await authenticateAction();
 
   if (parseFixturesEnabled()) {
     return fixtureStream([
@@ -97,16 +138,34 @@ export async function analyzeDocuments(docs: string[], prompt: string) {
     ]);
   }
 
-  const extractedText = await generateDocumentText(docs);
-  const finalPrompt = `prompt: ${prompt}\ndocument: ${extractedText}\n\nReturn plain text only. Do not use markdown or any other formatting.`;
+  if (
+    !Array.isArray(docs) ||
+    docs.length === 0 ||
+    docs.length > MAX_ANALYSIS_DOCUMENTS ||
+    typeof prompt !== "string" ||
+    prompt.trim().length === 0
+  ) {
+    throw new Error("Select between 1 and 10 documents and enter a prompt");
+  }
 
-  const messages: ModelMessage[] = [{ content: finalPrompt, role: "user" }];
+  const bucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGEBUCKET;
+  const urls = docs.map((doc) => assertUserStoragePdfUrl(doc, uid, bucket));
 
-  const result = streamText({
-    model: google("gemini-2.5-flash"),
-    messages,
-  });
-
-  const stream = createStreamableValue(result.textStream);
-  return stream.value;
+  await chargeCredits(uid, ANALYSIS_CREDIT_COST);
+  try {
+    const extractedText = await generateDocumentText(urls);
+    const finalPrompt = `prompt: ${prompt}\ndocument: ${extractedText}\n\nReturn plain text only. Do not use markdown or any other formatting.`;
+    const messages: ModelMessage[] = [{ content: finalPrompt, role: "user" }];
+    const result = streamText({
+      model: google("gemini-2.5-flash"),
+      messages,
+    });
+    const stream = createStreamableValue(result.textStream);
+    return stream.value;
+  } catch (error) {
+    await refundCredits(uid, ANALYSIS_CREDIT_COST).catch((refundError) => {
+      console.error("Credit refund failed", refundError);
+    });
+    throw error;
+  }
 }

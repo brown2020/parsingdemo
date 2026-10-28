@@ -1,7 +1,7 @@
 "use client";
 
 import { auth, hasClientConfig } from "@/firebase/firebaseClient";
-import { mapAuthError } from "@/utils/authErrors";
+import { mapAuthError, passwordResetShowsSuccess } from "@/utils/authErrors";
 import { sendPasswordResetEmail } from "firebase/auth";
 import Link from "next/link";
 import { useState } from "react";
@@ -29,6 +29,10 @@ export default function ForgotPasswordPage() {
       await sendPasswordResetEmail(auth, email.trim());
       setSent(true);
     } catch (err) {
+      if (passwordResetShowsSuccess(err)) {
+        setSent(true);
+        return;
+      }
       setError(mapAuthError(err));
     } finally {
       setLoading(false);

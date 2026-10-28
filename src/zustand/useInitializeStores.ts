@@ -4,12 +4,13 @@ import useProfileStore from "./useProfileStore";
 
 export const useInitializeStores = () => {
   const uid = useAuthStore((state) => state.uid);
+  const authReady = useAuthStore((state) => state.authReady);
 
   const fetchProfile = useProfileStore((state) => state.fetchProfile);
 
   useEffect(() => {
-    if (!uid) return;
+    if (!authReady || !uid) return;
 
-    fetchProfile();
-  }, [fetchProfile, uid]);
+    void fetchProfile();
+  }, [authReady, fetchProfile, uid]);
 };

@@ -10,15 +10,12 @@ import {
   signInWithPopup,
   GoogleAuthProvider,
   updateProfile,
-  getIdToken,
 } from "firebase/auth";
-import { setCookie } from "cookies-next";
+import { mintSession } from "@/utils/clientSession";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ClipLoader } from "react-spinners";
-
-const COOKIE_NAME = process.env.NEXT_PUBLIC_COOKIE_NAME || "authToken";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -54,12 +51,7 @@ export default function SignUpPage() {
 
   const settleSession = async () => {
     if (!auth?.currentUser) return;
-    const token = await getIdToken(auth.currentUser, true);
-    setCookie(COOKIE_NAME, token, {
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-    });
+    await mintSession(auth.currentUser, { force: true });
     const u = auth.currentUser;
     setAuthDetails({
       uid: u.uid,

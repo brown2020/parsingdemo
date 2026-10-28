@@ -3,7 +3,7 @@
 import Link from "next/link";
 import AuthGuard from "@/components/AuthGuard";
 import PaymentCheckoutPage from "@/components/PaymentCheckoutPage";
-import convertToSubcurrency from "@/utils/convertToSubcurrency";
+import { CREDIT_PACK_CENTS } from "@/utils/creditPack";
 
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
@@ -12,7 +12,7 @@ const stripeKey = process.env.NEXT_PUBLIC_STRIPE_KEY?.trim();
 const stripePromise = stripeKey ? loadStripe(stripeKey) : null;
 
 export default function PaymentAttempt() {
-  const amount = 99.99;
+  const amount = CREDIT_PACK_CENTS / 100;
 
   if (!stripePromise) {
     return (
@@ -37,7 +37,7 @@ export default function PaymentAttempt() {
         stripe={stripePromise}
         options={{
           mode: "payment",
-          amount: convertToSubcurrency(amount),
+          amount: CREDIT_PACK_CENTS,
           currency: "usd",
         }}
       >

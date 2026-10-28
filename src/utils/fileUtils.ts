@@ -91,12 +91,12 @@ export const deleteFile = async (
 
   if (fileDoc.exists()) {
     const fileData = fileDoc.data();
-    if (fileData?.pathPdf) {
-      await deleteObject(ref(storage, fileData.pathPdf));
-    }
-    if (fileData?.pathTxt) {
-      await deleteObject(ref(storage, fileData.pathTxt));
-    }
+    const paths = [fileData?.pathPdf, fileData?.pathTxt].filter(
+      (path): path is string => typeof path === "string" && path.length > 0
+    );
+    await Promise.allSettled(
+      paths.map((path) => deleteObject(ref(storage, path)))
+    );
     await deleteDoc(fileDocRef);
   }
 };
