@@ -3,8 +3,8 @@
 import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamText, type ModelMessage } from "ai";
 import { google } from "@ai-sdk/google";
-import { PDFParse } from "pdf-parse";
 import { authenticateAction } from "@/utils/serverAuth";
+import { extractPdfText } from "@/utils/pdfText";
 import { assertUserStoragePdfUrl } from "@/utils/storageUrl";
 import {
   ANALYSIS_CREDIT_COST,
@@ -96,13 +96,7 @@ async function readBoundedPdf(url: URL) {
 
 async function extractTextFromPdf(pdfUrl: URL) {
   const dataBuffer = await readBoundedPdf(pdfUrl);
-  const parser = new PDFParse({ data: dataBuffer });
-  try {
-    const data = await parser.getText();
-    return data.text;
-  } finally {
-    await parser.destroy().catch(() => undefined);
-  }
+  return extractPdfText(dataBuffer);
 }
 
 async function generateDocumentText(docs: URL[]) {
