@@ -20,7 +20,6 @@ Punchlist as of 2026-10-28. Nothing here is a commitment. Open GitHub issues and
 - `cleanupPartialUpload` can also fail partway. The upload throws after logging that, so a retry can leave a duplicate document or object.
 - Firestore allows the owner to set `profile.emailVerified`. That flag is not Firebase Auth's `emailVerified`. A client can mark the profile verified.
 - `serverAuth` treats `verifyIdToken` as the "Admin is real" probe, then calls `verifySessionCookie`. `src/proxy.ts` still says the server check is `verifyIdToken`.
-- `next.config.mjs` allows `img.clerk.com`. The app signs in with Firebase, not Clerk.
 - The documents UI prints the PDF download URL next to each selected file.
 - `react-doctor` 0.9.18 warns about `setState` after `await` in `PaymentSuccessPage` (the effect already drops stale results). The command exits 0. Score was 84.
 
@@ -29,7 +28,6 @@ Punchlist as of 2026-10-28. Nothing here is a commitment. Open GitHub issues and
 - Charge or refund from the stream's terminal result, and hide or delete `continueConversation` until a chat UI needs it.
 - Run OCR or a vision pass for image and HEIC uploads if those files should be analyzable. Do not change the Gemini model id as part of unrelated cleanup.
 - Make delete and failed-upload cleanup retry, or record a cleanup job, so Firestore and Storage do not diverge.
-- Drop the Clerk image host if nothing references it.
 - Add a production origin to `cors.json` only in the deployed bucket config, not as `*`.
 - Add tests around `ensureUserProfile` (welcome balance once, secret-field deletion) and around stream failure refunds once that behavior exists.
 - Re-run `npm audit` when bumping Firebase or Puppeteer. The 2026-10-28 audit was clean (0 vulnerabilities).
