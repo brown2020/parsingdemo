@@ -7,7 +7,7 @@ Punchlist as of 2026-10-28. Nothing here is a commitment. Open GitHub issues and
 - Deploy `firestore.rules` and `storage.rules`. CI does not deploy them. There is no `firestore.indexes.json`; add one only if a new query needs a composite index.
 - Apply Storage CORS from `cors.json` after adding the production origin. The file in git allows `http://localhost:3000` only.
 - Confirm the host has the env names in `README.md`, especially `STRIPE_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`, `GOOGLE_GENERATIVE_AI_API_KEY`, the Firebase Admin trio (`FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`), and `NEXT_PUBLIC_FIREBASE_STORAGEBUCKET`. Checkout and credit grants stay disabled until the webhook secret and Admin credentials exist. Register `payment_intent.succeeded` on `POST /api/stripe/webhook`.
-- Decide when to move CI and the host to Node `>=24.12.0`. Current `@firebase/app`, `@firebase/auth`, `@firebase/firestore`, `@firebase/storage`, and `@firebase/ai` declare that engine. CI remains Node 22, which installs with `EBADENGINE` and still builds. Do not change the Vercel project settings from a docs pass.
+- Decide when to move CI to Node `>=24.12.0`. The Vercel project is already Node 24 (see Deployment). Nested `@firebase/*` packages declare that engine. CI remains Node 22, which installs with `EBADENGINE` and still builds.
 - Move to TypeScript 7.0.2 only after `@typescript-eslint/parser` widens its peer range past `<6.1.0`. The app stays on TypeScript 6.0.3 so lint keeps working.
 - Remove or intentionally wire the unused `.env.example` names: `FIREBASE_UNIVERSE_DOMAIN`, `GEMINI_API_KEY`, `ANTHROPIC_API_KEY`, `MISTRAL_API_KEY`, `OPENAI_API_KEY`.
 
@@ -34,3 +34,7 @@ Punchlist as of 2026-10-28. Nothing here is a commitment. Open GitHub issues and
 - Add tests around `ensureUserProfile` (welcome balance once, secret-field deletion) and around stream failure refunds once that behavior exists.
 - Re-run `npm audit` when bumping Firebase or Puppeteer. The 2026-10-28 audit was clean (0 vulnerabilities).
 - Keep the `jwks-rsa` → `jose@5.10.0` override until `firebase-admin` no longer depends on `jwks-rsa` 4 or that package can load current `jose` without `ERR_REQUIRE_ESM`.
+
+## Deployment
+
+Vercel project linked Oct 28, 2026 (team `ignitechannel`, project `parsingdemo`, Node 24). Dev previews are served at `https://parsingdemo-git-dev-ignitechannel.vercel.app`. Sign-in, parsing, and checkout need the Firebase, AI, and Stripe env vars set in Vercel. Those values are not set yet.
