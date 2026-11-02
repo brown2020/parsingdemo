@@ -48,14 +48,16 @@ Node.js 20.9.0 or newer is expected by the Next.js 16 stack.
 
 ## Current Validation Baseline
 
-- `npm ci` from this lockfile is the install path. `npm audit` reported 0
-  vulnerabilities on 2026-10-28.
+- `npm ci` from this lockfile is the install path. On 2026-11-02 `npm audit`
+  reported 2 moderate findings, both `eslint-plugin-react` → `minimatch`
+  3.1.5. See `roadmap.md` before overriding that copy to minimatch 11.
 - `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` are the
-  required gates. CI runs them on Node 22 without secrets.
+  required gates. CI runs them on Node 24 without secrets.
 - TypeScript stays on 6.0.x until `@typescript-eslint/parser` accepts 7.x
   (current peer range is `typescript <6.1.0`).
 - Keep the `jwks-rsa` → `jose@5.10.0` override while `firebase-admin` 14
-  depends on `jwks-rsa` 4.
+  depends on `jwks-rsa` 4. Keep the `@grpc/grpc-js` override on the current
+  release.
 
 
 ## CI and secrets

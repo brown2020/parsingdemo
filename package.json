@@ -9,21 +9,21 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "doctor": "npx -y react-doctor@0.9.18 . --verbose --offline"
+    "doctor": "npx -y react-doctor@0.9.22 . --verbose --offline"
   },
   "dependencies": {
-    "@ai-sdk/google": "^4.0.107",
-    "@ai-sdk/rsc": "^3.0.156",
+    "@ai-sdk/google": "^4.0.109",
+    "@ai-sdk/rsc": "^3.0.159",
     "@kenjiuno/msgreader": "^1.29.0",
     "@sparticuz/chromium": "^153.0.0",
     "@stripe/react-stripe-js": "^7.0.1",
     "@stripe/stripe-js": "^10.2.0",
-    "ai": "^7.0.156",
+    "ai": "^7.0.159",
     "firebase": "^13.1.0",
     "firebase-admin": "^14.5.0",
     "heic2any": "^0.0.4",
-    "lucide-react": "1.63.0",
-    "mailparser": "^3.12.4",
+    "lucide-react": "1.66.0",
+    "mailparser": "^3.14.1",
     "mammoth": "^1.13.0",
     "next": "^16.4.3",
     "pdf-lib": "^1.17.1",
@@ -38,7 +38,7 @@
     "react-spinners": "^0.17.1",
     "react-textarea-autosize": "^8.5.9",
     "sanitize-html": "^2.18.1",
-    "stripe": "^23.0.1",
+    "stripe": "^23.1.0",
     "zod": "^4.6.7",
     "zustand": "^5.0.16"
   },
@@ -54,7 +54,7 @@
     "@types/sanitize-html": "^2.16.2",
     "@typescript-eslint/eslint-plugin": "^8.72.1",
     "@typescript-eslint/parser": "^8.72.1",
-    "eslint": "^10.13.0",
+    "eslint": "^10.14.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "postcss": "^8.5.32",
@@ -64,9 +64,19 @@
     "vitest": "^5.0.5"
   },
   "overrides": {
-    "@grpc/grpc-js": "1.14.6",
+    "@grpc/grpc-js": "1.14.7",
     "jwks-rsa": {
       "jose": "5.10.0"
+    },
+    "glob": "14.0.3",
+    "eslint": {
+      "minimatch": "11.0.4"
+    },
+    "@eslint/config-array": {
+      "minimatch": "11.0.4"
+    },
+    "@typescript-eslint/typescript-estree": {
+      "minimatch": "11.0.4"
     }
   }
 }

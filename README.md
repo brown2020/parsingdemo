@@ -25,18 +25,18 @@ Versions are the ranges in `package.json`.
 | Area | Packages |
 | --- | --- |
 | Framework | Next.js `^16.4.3`, React `^19.3.1`, React DOM `^19.3.1` |
-| Language | TypeScript `^6.0.3` (TypeScript 7 is published; ESLint's parser does not accept it yet) |
+| Language | TypeScript `^6.0.3` (TypeScript 7.0.2 is published; `@typescript-eslint/parser` 8.72.1 still requires `typescript <6.1.0`) |
 | Styling | Tailwind CSS `^4.3.3`, `@tailwindcss/postcss` `^4.3.3` |
 | State | Zustand `^5.0.16` |
 | Auth and data | `firebase` `^13.1.0`, `firebase-admin` `^14.5.0` |
-| AI | `ai` `^7.0.156`, `@ai-sdk/google` `^4.0.107`, `@ai-sdk/rsc` `^3.0.156` |
-| Payments | `stripe` `^23.0.1`, `@stripe/stripe-js` `^10.2.0`, `@stripe/react-stripe-js` `^7.0.1` |
-| Parsing and PDF | `pdf-parse` `^2.4.5`, `pdf-lib` `^1.17.1`, `mammoth` `^1.13.0`, `mailparser` `^3.12.4`, `@kenjiuno/msgreader` `^1.29.0`, `sanitize-html` `^2.18.1`, `puppeteer` `^25.16.0`, `@sparticuz/chromium` `^153.0.0`, `heic2any` `^0.0.4` |
+| AI | `ai` `^7.0.159`, `@ai-sdk/google` `^4.0.109`, `@ai-sdk/rsc` `^3.0.159` |
+| Payments | `stripe` `^23.1.0`, `@stripe/stripe-js` `^10.2.0`, `@stripe/react-stripe-js` `^7.0.1` |
+| Parsing and PDF | `pdf-parse` `^2.4.5`, `pdf-lib` `^1.17.1`, `mammoth` `^1.13.0`, `mailparser` `^3.14.1`, `@kenjiuno/msgreader` `^1.29.0`, `sanitize-html` `^2.18.1`, `puppeteer` `^25.16.0`, `@sparticuz/chromium` `^153.0.0`, `heic2any` `^0.0.4` |
 | Validation | `zod` `^4.6.7` |
 | Tests | Vitest `^5.0.5`, Vite `^8.3.5` |
-| Lint | ESLint `^10.13.0`, `typescript-eslint` `^8.72.1` |
+| Lint | ESLint `^10.14.0`, `typescript-eslint` `^8.72.1` |
 
-`firebase-admin` 14 pulls `jwks-rsa` 4. `package.json` overrides that package's `jose` dependency to `5.10.0`. `@grpc/grpc-js` is overridden to `1.14.6` (the current release).
+`firebase-admin` 14 pulls `jwks-rsa` 4. `package.json` overrides that package's `jose` dependency to `5.10.0` so `require("firebase-admin/auth")` does not throw `ERR_REQUIRE_ESM`. `@grpc/grpc-js` is overridden to `1.14.7`. `glob` is overridden to `14.0.3`, and the `minimatch` copies used by ESLint and typescript-eslint are overridden to `11.0.4`. `eslint-plugin-react` 7.37.5 still depends on `minimatch` 3.1.5: minimatch 11's CommonJS export is not a function, and that plugin calls it as one. `npm audit fix --force` would downgrade the plugin, so those two moderate findings stay.
 
 ## Project structure
 
@@ -70,7 +70,7 @@ roadmap.md
 
 ### Prerequisites
 
-- Node.js 22 (the version CI uses). Next.js 16 requires Node `>=20.9.0`. Nested `@firebase/*` packages declare `engines.node >= 24.12.0` and npm prints `EBADENGINE` on Node 22; the app still installs and builds here. See `roadmap.md` before moving the runtime
+- Node.js 24. CI uses `actions/setup-node` with `node-version: "24"`. Next.js 16 requires Node `>=20.9.0`. Nested `@firebase/*` packages declare `engines.node >= 24.12.0`, so use a current Node 24 (this tree was installed and tested on 24.22.2)
 - npm
 - A Firebase project with Auth, Firestore, and Storage, plus a service account for Admin
 - A Google AI key for live analysis
@@ -153,13 +153,13 @@ PARSE_USE_FIXTURES=true npm run dev
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | Vitest |
-| `npm run doctor` | `react-doctor` 0.9.18, offline |
+| `npm run doctor` | `react-doctor` 0.9.22, offline |
 
 ## Testing and CI
 
-Unit tests cover session path rules, auth errors, the credit-pack amount check, PDF URL allowlisting, HTML sanitization, webhook rejection when the signing secret is missing, and parse fixtures.
+Unit tests cover session path rules, auth errors, the credit-pack amount check, PDF URL allowlisting, HTML sanitization, webhook rejection when the signing secret is missing, parse fixtures, and the PDF, DOCX, and EML text conversion routes (signed-out, missing file, oversized upload, and a successful extract).
 
-`.github/workflows/ci.yml` runs on pushes and pull requests to `dev` and `main`: `npm ci --ignore-scripts`, lint, typecheck, test, react-doctor, and the production build. Node 22. `PARSE_USE_FIXTURES=true`. No Actions secrets are required.
+`.github/workflows/ci.yml` runs on pushes and pull requests to `dev` and `main`: `npm ci --ignore-scripts`, lint, typecheck, test, react-doctor, and the production build. Node 24. `PARSE_USE_FIXTURES=true`. No Actions secrets are required.
 
 `.github/workflows/malware-scan.yml` runs `scripts/malware-scan.sh` (static IOC match only).
 
