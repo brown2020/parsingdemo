@@ -27,6 +27,8 @@ const nextConfig = {
   ],
   // pdfjs polyfills DOMMatrix from this native package. The require is dynamic,
   // so the Linux binary has to be traced explicitly or Vercel omits it.
+  // @sparticuz/chromium is externalized, and executablePath() reads bin/*.br
+  // at runtime. Without this include, Vercel drops the pack and *ToPdf 500s.
   outputFileTracingIncludes: {
     "/api/convertPdfToText": [
       "./node_modules/@napi-rs/canvas/**/*",
@@ -35,6 +37,18 @@ const nextConfig = {
     "/documents": [
       "./node_modules/@napi-rs/canvas/**/*",
       "./node_modules/@napi-rs/canvas-linux-x64-gnu/**/*",
+    ],
+    "/api/convertDocxToPdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+    ],
+    "/api/convertEmlToPdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+    ],
+    "/api/convertImageToPdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
+    ],
+    "/api/convertMsgToPdf": [
+      "./node_modules/@sparticuz/chromium/bin/**/*",
     ],
   },
 };

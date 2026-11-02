@@ -129,7 +129,7 @@ The production build and CI succeed when these are unset. Firebase and Stripe in
 2. Deploy `firestore.rules` and `storage.rules` yourself. This repo does not deploy them. There is no `firestore.indexes.json`.
 3. Apply `cors.json` to the Storage bucket if browser uploads fail. The committed file allows `http://localhost:3000` only. Add the production origin before applying it. Do not use `*`.
 4. Point a Stripe webhook at `https://<your-host>/api/stripe/webhook` for `payment_intent.succeeded`, and set `STRIPE_WEBHOOK_SECRET`.
-5. Conversion uploads are capped at 4MB. On Vercel, HTML-to-PDF uses `@sparticuz/chromium`. Conversion routes set `maxDuration` to 300 seconds.
+5. Conversion uploads are capped at 4MB. On Vercel, HTML-to-PDF uses `@sparticuz/chromium`. `outputFileTracingIncludes` adds `node_modules/@sparticuz/chromium/bin/**/*` to the DOCX, EML, image, and MSG PDF routes so the brotli pack is in the function. Conversion routes set `maxDuration` to 300 seconds.
 
 ### Run
 
