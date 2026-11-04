@@ -21,7 +21,6 @@ Punchlist as of 2026-11-02. Nothing here is a commitment. Open GitHub issues and
 - Firestore allows the owner to set `profile.emailVerified`. That flag is not Firebase Auth's `emailVerified`. A client can mark the profile verified.
 - `serverAuth` treats `verifyIdToken` as the "Admin is real" probe, then calls `verifySessionCookie`. `src/proxy.ts` still says the server check is `verifyIdToken`.
 - The documents UI prints the PDF download URL next to each selected file.
-- `react-doctor` 0.9.22 warns about `setState` after `await` in `PaymentSuccessPage` (the effect already drops stale results). The command exits 0. Score was 85.
 
 ## Next product work
 

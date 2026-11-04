@@ -31,17 +31,20 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
 
   useEffect(() => {
     if (!payment_intent || !uid) return;
-    let ignore = false;
+    // `cancelled` is written only from cleanup so an in-flight poll cannot
+    // commit after the effect is dropped. `settled` stops later ticks.
+    let cancelled = false;
+    let settled = false;
     let attempts = 0;
 
     const tick = async () => {
-      if (ignore || attempts >= 5) return;
+      if (cancelled || settled || attempts >= 5) return;
       attempts += 1;
       try {
         const existing = await checkIfPaymentProcessed(payment_intent);
-        if (ignore) return;
+        if (cancelled || settled) return;
         if (existing?.status === "succeeded") {
-          ignore = true;
+          settled = true;
           setVerified(true);
           setAmount(existing.amount);
           setMessage("Payment verified. Credits have been added to your account.");
@@ -51,8 +54,9 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
       } catch (error) {
         console.warn("Error checking payment:", error);
       }
-      if (ignore) return;
+      if (cancelled || settled) return;
       if (attempts >= 5) {
+        settled = true;
         setMessage(
           "Payment submitted. Credits appear after the payment is verified."
         );
@@ -66,7 +70,7 @@ export default function PaymentSuccessPage({ payment_intent }: Props) {
     void tick();
 
     return () => {
-      ignore = true;
+      cancelled = true;
       clearInterval(timer);
     };
   }, [payment_intent, checkIfPaymentProcessed, uid]);

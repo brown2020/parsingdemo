@@ -24,16 +24,16 @@ Versions are the ranges in `package.json`.
 
 | Area | Packages |
 | --- | --- |
-| Framework | Next.js `^16.4.3`, React `^19.3.1`, React DOM `^19.3.1` |
+| Framework | Next.js `^16.4.5`, React `^19.3.1`, React DOM `^19.3.1` |
 | Language | TypeScript `^6.0.3` (TypeScript 7.0.2 is published; `@typescript-eslint/parser` 8.72.1 still requires `typescript <6.1.0`) |
-| Styling | Tailwind CSS `^4.3.3`, `@tailwindcss/postcss` `^4.3.3` |
+| Styling | Tailwind CSS `^4.3.4`, `@tailwindcss/postcss` `^4.3.4` |
 | State | Zustand `^5.0.16` |
-| Auth and data | `firebase` `^13.1.0`, `firebase-admin` `^14.5.0` |
-| AI | `ai` `^7.0.159`, `@ai-sdk/google` `^4.0.109`, `@ai-sdk/rsc` `^3.0.159` |
-| Payments | `stripe` `^23.1.0`, `@stripe/stripe-js` `^10.2.0`, `@stripe/react-stripe-js` `^7.0.1` |
+| Auth and data | `firebase` `^13.2.0`, `firebase-admin` `^14.5.0` |
+| AI | `ai` `^7.0.162`, `@ai-sdk/google` `^4.0.111`, `@ai-sdk/rsc` `^3.0.162` |
+| Payments | `stripe` `^23.1.0`, `@stripe/stripe-js` `^10.2.1`, `@stripe/react-stripe-js` `^7.0.1` |
 | Parsing and PDF | `pdf-parse` `^2.4.5`, `pdf-lib` `^1.17.1`, `mammoth` `^1.13.0`, `mailparser` `^3.14.1`, `@kenjiuno/msgreader` `^1.29.0`, `sanitize-html` `^2.18.1`, `puppeteer` `^25.16.0`, `@sparticuz/chromium` `^153.0.0`, `heic2any` `^0.0.4` |
 | Validation | `zod` `^4.6.7` |
-| Tests | Vitest `^5.0.5`, Vite `^8.3.5` |
+| Tests | Vitest `^5.1.0`, Vite `^8.3.5` |
 | Lint | ESLint `^10.14.0`, `typescript-eslint` `^8.72.1` |
 
 `firebase-admin` 14 pulls `jwks-rsa` 4. `package.json` overrides that package's `jose` dependency to `5.10.0` so `require("firebase-admin/auth")` does not throw `ERR_REQUIRE_ESM`. `@grpc/grpc-js` is overridden to `1.14.7`. `glob` is overridden to `14.0.3`, and the `minimatch` copies used by ESLint and typescript-eslint are overridden to `11.0.4`. `eslint-plugin-react` 7.37.5 still depends on `minimatch` 3.1.5: minimatch 11's CommonJS export is not a function, and that plugin calls it as one. `npm audit fix --force` would downgrade the plugin, so those two moderate findings stay.
